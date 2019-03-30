@@ -142,4 +142,15 @@ contract yesNoPoll {
     polls[pollHash].totalVotes++;
     polls[pollHash].hasVoted[msg.sender] = true;
   }
+  
+
+/*-------------------<GETTER FUNCTIONS>-------------------*/
+
+    function getName(bytes32 pollHash) public view returns(string memory) {
+        return polls[pollHash].name;
+    }
+    
+    function getDesc(bytes32 pollHash) public view returns (string memory) {
+        return polls[pollHash].description;
+    }
 }

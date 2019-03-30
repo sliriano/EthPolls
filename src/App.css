@@ -1,9 +1,9 @@
 body {
-    background: #312450
+    background:  white;
 }
 
 .header {
-    background-color: #5e42a6;
+    background-color: #312450;
     padding: 1.75em 2em;
 }
 .title {
@@ -39,17 +39,17 @@ body {
     margin:0;
     padding:0;
     cursor: pointer;
-    color: lightgray;
+    color: #5e42a6;
     font-size: 24px;
     -webkit-transition-duration: 0.4s; /* Safari */
     transition-duration: 0.4s;
 }
 .astext:hover {
-    color: white;
+    color: black;
 }
 
 .line {
-    color: lightgray;
+    color: #312450;
     font-size: 24px;
 }
 
@@ -60,18 +60,18 @@ body {
 
 .searchBox {
     text-align: center;
-    color: lightgray;
+    color: black;
     margin-left: 25%;
     margin-right:25%;
 }
 
 .user {
-    color: white;
+    color:#5e42a6;
     margin-left: 2.5%;
     font-size: 18px;
 }
 .userMessage {
-    color: #25c63d;
+    color: Green;
 }
 
 input {
@@ -82,10 +82,10 @@ input {
     border-bottom-style: solid;
     border-left-style: none;
     border-right-style: none;
-    border-color:white;
+    border-color:#5e42a6;
     border-width: 1px;
     background: transparent;
-    color: white;
+    color: black;
     font-size: 24px;
 }
 input:focus {
@@ -93,7 +93,7 @@ input:focus {
 }
 
 .button {
-    background-color: #cdc7d9; /* Green */
+    background-color: #cdc7d9; /* Off White */
     border: none;
     color: black;
     padding: 15px 32px;
@@ -104,6 +104,10 @@ input:focus {
 }
 .button:hover {
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+.centerbtn {
+    text-align: center;
 }
 
 .pulsate {
@@ -122,3 +126,120 @@ input:focus {
         opacity: 0.5;
     }
 }
+
+.container {
+    display: block;
+    position: relative;
+    padding-left: 35px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Hide the browser's default checkbox */
+  .container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  /* Create a custom checkbox */
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+  }
+  
+  /* On mouse-over, add a grey background color */
+  .container:hover input ~ .checkmark {
+    background-color: #ccc;
+  }
+  
+  /* When the checkbox is checked, add a blue background */
+  .container input:checked ~ .checkmark {
+    background-color: #2196F3;
+  }
+  
+  /* Create the checkmark/indicator (hidden when not checked) */
+  .checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  /* Show the checkmark when checked */
+  .container input:checked ~ .checkmark:after {
+    display: block;
+  }
+  
+  /* Style the checkmark/indicator */
+  .container .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+  .radioButtons {
+    margin: auto;
+    width: 50%;
+    padding: 10px;
+  }
+
+  .poll {
+      text-align: center;
+  }
+
+  .chart {
+    text-align: center;
+    width: 50%;
+    margin: 0 auto;
+  }
+
+  #noBtn {
+    background-color: white; /* Green */
+    border: 1px solid #5e42a6;
+    color: #5e42a6;
+    padding: 12px 28px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+  }
+
+  #yesBtn {
+    background-color: white; /* Green */
+    border: 1px solid #5e42a6;
+    color: #5e42a6;
+    padding: 12px 28px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+  }
+
+  #yesBtn:hover {
+    background-color: lightgrey; /* Green */
+  }
+
+  #noBtn:hover {
+      background-color: lightgrey;
+  }

@@ -1,93 +1,9 @@
 import web3 from './web3';
 
-const address = '0xbe7bdd2635872f4d4033cec3a5f1d1b7488d744d';
+const address = '0x0a2283dcf0ca31aead64f66f7743a5c9afd12ebb';
 
 const abi = 
 [
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "pollHash",
-				"type": "bytes32"
-			},
-			{
-				"name": "allowed",
-				"type": "address[]"
-			}
-		],
-		"name": "addAllowedUsers",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "pollHash",
-				"type": "bytes32"
-			}
-		],
-		"name": "cancelPoll",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"name": "options",
-				"type": "string[]"
-			},
-			{
-				"name": "allowed",
-				"type": "address[]"
-			},
-			{
-				"name": "isPublic",
-				"type": "bool"
-			},
-			{
-				"name": "expiration",
-				"type": "uint256"
-			}
-		],
-		"name": "createPoll",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "pollHash",
-				"type": "bytes32"
-			},
-			{
-				"name": "voteChoice",
-				"type": "uint256"
-			}
-		],
-		"name": "vote",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
 	{
 		"constant": true,
 		"inputs": [
@@ -115,18 +31,14 @@ const abi =
 		"constant": true,
 		"inputs": [
 			{
-				"name": "",
-				"type": "address"
-			},
-			{
-				"name": "",
-				"type": "uint256"
+				"name": "pollHash",
+				"type": "bytes32"
 			}
 		],
-		"name": "archive",
+		"name": "pollStatus",
 		"outputs": [
 			{
-				"name": "isClosed",
+				"name": "isOpen",
 				"type": "bool"
 			},
 			{
@@ -134,27 +46,15 @@ const abi =
 				"type": "bool"
 			},
 			{
-				"name": "creator",
-				"type": "address"
+				"name": "options",
+				"type": "string[]"
 			},
 			{
-				"name": "name",
-				"type": "string"
+				"name": "results",
+				"type": "uint256[]"
 			},
 			{
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"name": "totalVotes",
-				"type": "uint256"
-			},
-			{
-				"name": "start",
-				"type": "uint256"
-			},
-			{
-				"name": "expiration",
+				"name": "total",
 				"type": "uint256"
 			}
 		],
@@ -163,41 +63,32 @@ const abi =
 		"type": "function"
 	},
 	{
-		"constant": true,
+		"constant": false,
 		"inputs": [
 			{
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"name": "creator",
-				"type": "address"
-			}
-		],
-		"name": "calcPollHash",
-		"outputs": [
-			{
-				"name": "",
+				"name": "pollHash",
 				"type": "bytes32"
 			}
 		],
+		"name": "cancelPoll",
+		"outputs": [],
 		"payable": false,
-		"stateMutability": "pure",
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"constant": true,
 		"inputs": [
 			{
-				"name": "",
-				"type": "address"
+				"name": "pollHash",
+				"type": "bytes32"
 			}
 		],
-		"name": "ownedPolls",
+		"name": "getName",
 		"outputs": [
 			{
 				"name": "",
-				"type": "uint256"
+				"type": "string"
 			}
 		],
 		"payable": false,
@@ -259,10 +150,145 @@ const abi =
 				"type": "bytes32"
 			}
 		],
-		"name": "pollStatus",
+		"name": "getDesc",
 		"outputs": [
 			{
-				"name": "isOpen",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"name": "creator",
+				"type": "address"
+			}
+		],
+		"name": "calcPollHash",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			},
+			{
+				"name": "voteChoice",
+				"type": "uint256"
+			}
+		],
+		"name": "vote",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "ownedPolls",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			},
+			{
+				"name": "allowed",
+				"type": "address[]"
+			}
+		],
+		"name": "addAllowedUsers",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"name": "options",
+				"type": "string[]"
+			},
+			{
+				"name": "allowed",
+				"type": "address[]"
+			},
+			{
+				"name": "isPublic",
+				"type": "bool"
+			},
+			{
+				"name": "expiration",
+				"type": "uint256"
+			}
+		],
+		"name": "createPoll",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			},
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "archive",
+		"outputs": [
+			{
+				"name": "isClosed",
 				"type": "bool"
 			},
 			{
@@ -270,15 +296,27 @@ const abi =
 				"type": "bool"
 			},
 			{
-				"name": "options",
-				"type": "string[]"
+				"name": "creator",
+				"type": "address"
 			},
 			{
-				"name": "results",
-				"type": "uint256[]"
+				"name": "name",
+				"type": "string"
 			},
 			{
-				"name": "total",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "totalVotes",
+				"type": "uint256"
+			},
+			{
+				"name": "start",
+				"type": "uint256"
+			},
+			{
+				"name": "expiration",
 				"type": "uint256"
 			}
 		],

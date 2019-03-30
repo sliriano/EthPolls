@@ -1,6 +1,6 @@
 import web3 from './web3';
 
-const address = '';
+const address = '0x4bdb0ca20648a738eb7def7636875a184485df67';
 
 const abi = 
 [
@@ -80,6 +80,25 @@ const abi =
 		"constant": true,
 		"inputs": [
 			{
+				"name": "pollHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "getName",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
 				"name": "",
 				"type": "bytes32"
 			}
@@ -125,6 +144,25 @@ const abi =
 			{
 				"name": "expiration",
 				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "getDesc",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
 			}
 		],
 		"payable": false,
@@ -298,6 +336,6 @@ const abi =
 		"stateMutability": "view",
 		"type": "function"
 	}
-]; 
+];
 
 export default new web3.eth.Contract(abi, address);

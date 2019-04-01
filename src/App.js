@@ -17,7 +17,7 @@ class App extends Component {
     pollName: '',
     pollDescription: '',
     ispublic: '',
-    colorList: ['#C7CEEA','B5EAD7','E2F0CB','FFDAC1','#FFB7B2'],
+    colorList: ['#C7CEEA','#B5EAD7','#E2F0CB','#FFDAC1','#FFB7B2'],
     modColorList: [],
     // Yes/No State Variables
     yesVotes: '',
@@ -32,6 +32,7 @@ class App extends Component {
     multiDataHTML: [],
     voteOptionsHTML: [],
     voteChoice: 0,
+    //Display variables for each option
     o1: 'none',
     o2: 'none',
     o3: 'none',
@@ -69,11 +70,15 @@ class App extends Component {
         alert('Please select the poll type.');
       }
       else if (this.state.pollType === 'yesNo') {
+        // Hide MultiData Poll
         this.setState({multiDataDisplay: 'none'});
+
+        //Fetch Data from Ethereum
         const status = await yesNo.methods.pollStatus(this.state.pollhash).call({
           from: accounts[0]
         });
 
+        //Set Poll Properties
         this.setState({noVotes: status['no']});
         this.setState({yesVotes: status['yes']});
         this.setState({ispublic: status['isPublic']});
@@ -81,30 +86,37 @@ class App extends Component {
         this.setState({pollName: await yesNo.methods.getName(this.state.pollhash).call()}); 
         this.setState({yesNoDisplay: 'initial'});
         this.forceUpdate();
+        //Create Chart
         this.setState({chart: <Chart yesData={parseInt(this.state.yesVotes)} noData={parseInt(this.state.noVotes)} redraw/>});
       }
       else if (this.state.pollType === 'multiData') {
+        // Hide YesNo Poll
         this.setState({yesNoDisplay: 'none'});    
 
+        //Fetch Poll Data from Ethereum
         const status = await multiData.methods.pollStatus(this.state.pollhash).call({
           from: accounts[0]
         });
 
+        // Set Poll Property Values
         this.setState({results: status['results']});
         this.setState({options: status['options']});
         this.setState({ispublic: status['isPublic']});
         this.setState({pollDescription: await multiData.methods.getDesc(this.state.pollhash).call()});
         this.setState({pollName: await multiData.methods.getName(this.state.pollhash).call()});
-        this.setState({multiDataDisplay: 'initial'});
+
+        // Create Proper Color List & Pass in Values to MultiChart
         this.setState({modColorList: this.state.colorList.slice(0,this.state.colorList.length-1)});
         this.setState({multiChart: <MultiChart labels={this.state.options} results={this.state.results} bcgColors={this.state.modColorList} redraw/>})
 
+        // Create Options & Votes List, to be rendered
         const newList = [];
         for (var x= 0; x < this.state.options.length; x++) {
           newList.push(<h4>{this.state.options[x]}: {this.state.results[x]}</h4>);
         }
         this.setState({multiDataHTML: newList});
 
+        // Manually set display values for option list *MUST IMPROVE
         if(this.state.options.length === 5) {
           this.setState({o1: "initial"});
           this.setState({o2: "initial"});
@@ -123,15 +135,17 @@ class App extends Component {
         } else if(this.state.options.length === 2) {
           this.setState({o1: "initial"});
           this.setState({o2: "initial"});
+        }
+        // Display Multi Data Poll
+        this.setState({multiDataDisplay: 'initial'});
       }
-    }
     } 
     catch(e) {
       alert("Please make sure the pollhash is valid. Otherwise ensure that either metamask is installed and you are logged into it or you are using an Ethereum Browser");
     }
   }
 
-  
+  // Vote Yes on a Yes/No Poll
   voteYes = async (event) => {
     try {
       const accounts = await web3.eth.getAccounts();
@@ -146,6 +160,7 @@ class App extends Component {
     }
   }
 
+  // Vote NO on a Yes/No Poll
   voteNo = async (event) => {
     try {
       const accounts = await web3.eth.getAccounts();
@@ -160,6 +175,7 @@ class App extends Component {
     }
   }
 
+  // Cast vote on MultiData POll
   multiVote = async (event) => {
     try {
       const accounts = await web3.eth.getAccounts();
@@ -176,7 +192,7 @@ class App extends Component {
     }
   }
 
-
+  // Fetch User Only once, when the user opens the app
   componentDidMount() {
     this.getUser();
   }
@@ -198,7 +214,9 @@ class App extends Component {
         <div className="subheader">
           <p className = "user"><span className="pulsate"><span className="userMessage">{this.state.userMessage}</span> {this.state.user}</span></p>
           <span className = "switches">
-            <button className="astext">Search Polls</button> <span className = "line">|</span> <button className="astext">Create or View My Polls</button>
+            <button className="astext">Search for Poll</button> <span className = "line">|</span> 
+            <button className="astext">Create Poll</button> <span className = "line">|</span> 
+            <button className="astext">View My Polls</button>
           </span>
         </div>
 
@@ -229,17 +247,19 @@ class App extends Component {
             <span className="checkmark"></span>
         </label>
         </div>
+
         <br/>
         <br/>
 
         <div className ="centerbtn">
           <button onClick={this.searchPoll} className="button">Search</button>
         </div>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
 
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        {/******************************* YES NO POLL  ************************************/}
         <div className = "poll" id="yesNo" style={{display: this.state.yesNoDisplay}}>
           <p>Poll Name:</p>
           <h1>{this.state.pollName}</h1>
@@ -255,6 +275,7 @@ class App extends Component {
           <br/>
         </div>
 
+        {/******************************* MULTI DATA POLL  ************************************/}
         <div className = "poll" id="multiData" style={{display: this.state.multiDataDisplay}}>
           <p>Poll Name:</p>
           <h1>{this.state.pollName}</h1>
@@ -265,31 +286,40 @@ class App extends Component {
             {this.state.multiChart}
           </div>
           <div className="radioButtons">
-        <label style={{display:this.state.o1}} className="container"> {this.state.options[0]}
-            <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 0})}/>
-            <span className="checkmark"></span>
-        </label>
-        <label style={{display:this.state.o2}} className="container">{this.state.options[1]}
-            <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 1})}/>
-            <span className="checkmark"></span>
-        </label>
-        <label style={{display:this.state.o3}} className="container">{this.state.options[2]}
-            <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 2})}/>
-            <span className="checkmark"></span>
-        </label>
-        <label style={{display:this.state.o4}} className="container">{this.state.options[3]}
-            <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 3})}/>
-            <span className="checkmark"></span>
-        </label>
-        <label style={{display:this.state.o5}} className="container">{this.state.options[4]}
-            <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 4})}/>
-            <span className="checkmark"></span>
-        </label>
+            <label style={{display:this.state.o1}} className="container"> {this.state.options[0]}
+              <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 0})}/>
+              <span className="checkmark"></span>
+            </label>
+          </div>
+          <div className="radioButtons">
+            <label style={{display:this.state.o2}} className="container">{this.state.options[1]}
+                <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 1})}/>
+                <span className="checkmark"></span>
+            </label>
+          </div>
+          <div className="radioButtons">
+            <label style={{display:this.state.o3}} className="container">{this.state.options[2]}
+                <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 2})}/>
+                <span className="checkmark"></span>
+            </label>
+          </div>
+          <div className="radioButtons">
+            <label style={{display:this.state.o4}} className="container">{this.state.options[3]}
+                <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 3})}/>
+                <span className="checkmark"></span>
+            </label>
+          </div>
+          <div className="radioButtons">
+            <label style={{display:this.state.o5}} className="container">{this.state.options[4]}
+                <input name ="radio" type="radio" onClick={event=> this.setState({voteChoice: 4})}/>
+                <span className="checkmark"></span>
+            </label>
         </div>
           <div className ="multiBtn">
             <button onClick = {this.multiVote} id="multiVote">Vote</button>
           </div>
         </div>
+
 
       </div>
     );

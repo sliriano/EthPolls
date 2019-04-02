@@ -21,6 +21,8 @@ class App extends Component {
     modColorList: [],
     allowed: [],
     isallowed: false,
+    spinnerdisplay: 'none',
+    votecasted: 'none',
     // Yes/No State Variables
     yesVotes: '',
     noVotes: '',
@@ -103,6 +105,13 @@ class App extends Component {
         else if (this.state.isallowed === false) {
           this.setState({allowedmessage: "You are not allowed to vote on this poll."});
         }
+
+        // Checks if poll is expired
+        const isexpired = await yesNo.methods.isExpired(this.state.pollhash).call();
+        if (isexpired === true) {
+          this.setState({allowedmessage: "This poll has expired"});
+          this.setState({votebtndisplay: 'none'});
+        }
         
         //Create Chart
         this.setState({chart: <Chart yesData={parseInt(this.state.yesVotes)} noData={parseInt(this.state.noVotes)} redraw/>});
@@ -139,6 +148,12 @@ class App extends Component {
         }
         else if (this.state.isallowed === false) {
           this.setState({allowedmessage: "You are not allowed to vote on this poll."});
+        }
+        // Checks if poll is expired
+        const isexpired = await multiData.methods.isExpired(this.state.pollhash).call();
+        if (isexpired === true) {
+          this.setState({allowedmessage: "This poll has expired"});
+          this.setState({votebtndisplay: 'none'});
         }
 
         // Create Proper Color List & Pass in Values to MultiChart
@@ -188,14 +203,21 @@ class App extends Component {
     try {
       const accounts = await web3.eth.getAccounts();
       bool = true;
+      this.setState({spinnerdisplay: "initial"});
+
       await yesNo.methods.vote(this.state.pollhash,true).send({
         from: accounts[0]
       });
+      this.setState({spinnerdisplay: 'none'});
+      this.setState({votecasted: 'initial'});
     }
     catch (e) {
-      if (bool === false){
+      if (bool === false) {
         console.log(e);
         alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      } else{
+      this.setState({spinnerdisplay: "none"});
+      this.setState({votecasted: 'initial'});
       }
     }
   }
@@ -206,14 +228,20 @@ class App extends Component {
     try {
       const accounts = await web3.eth.getAccounts();
       bool = true;
+      this.setState({spinnerdisplay: "initial"});
       await yesNo.methods.vote(this.state.pollhash,false).send({
         from: accounts[0]
       });
+      this.setState({spinnerdisplay: "none"});
+      this.setState({votecasted: 'initial'});
     }
     catch (e) {
       if (bool === false) {
         console.log(e);
         alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      } else{
+      this.setState({spinnerdisplay: "none"});
+      this.setState({votecasted: 'initial'});
       }
     }
   }
@@ -224,20 +252,24 @@ class App extends Component {
     try {
       const accounts = await web3.eth.getAccounts();
 
-      console.log(this.state.voteChoice);
       bool = true;
+      this.setState({spinnerdisplay: "initial"});
+
       await multiData.methods.vote(this.state.pollhash,this.state.voteChoice+1).send({
         from: accounts[0]
       });
-
-
+      this.setState({spinnerdisplay: "none"});
+      this.setState({votecasted: 'initial'});
     }
-    catch(e) {
-      if (bool === false ) {
-      console.log(e);
-      alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+    catch (e) {
+      if (bool === false) {
+        console.log(e);
+        alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      } else{
+      this.setState({spinnerdisplay: "none"});
+      this.setState({votecasted: 'initial'});
+      }
     }
-  }
   }
 
   // Fetch User Only once, when the user opens the app
@@ -262,8 +294,8 @@ class App extends Component {
         <div className="subheader">
           <p className = "user"><span className="pulsate"><span className="userMessage">{this.state.userMessage}</span> {this.state.user}</span></p>
           <span className = "switches">
-            <button className="astext">Search for a Poll</button> <span className = "line">|</span> 
-            <button className="astext">Create a Poll</button> <span className = "line">|</span> 
+            <button className="astext">Search for a Poll</button> <span className = "lines">|</span> 
+            <button className="astext">Create a Poll</button> <span className = "lines">|</span> 
             <button className="astext">View My Polls</button>
           </span>
         </div>
@@ -323,6 +355,19 @@ class App extends Component {
           <span><button style={{display: this.state.votebtndisplay}} onClick={this.voteNo}id="noBtn">Vote No</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button style={{display: this.state.votebtndisplay}} onClick={this.voteYes} id="yesBtn">Vote Yes</button></span>
           </div>
           <br/>
+          <div className="loading-spinner" style={{display: this.state.spinnerdisplay, textAlign: 'center'}}>
+          <div className="load-1">
+                <p className="pulsate">Voting...(Approximately 1 Minute)</p>
+                <div className="line" id ="clearline"></div>
+                <div className="line"></div>
+                <div className="line"></div>
+                <div className="line"></div>
+            </div>
+          </div>
+          <div className = "center">
+          <h4 style={{display: this.state.votecasted, textAlign: 'center', color: '#383838'	}}>Your vote has been casted! Refresh the page and re-enter the poll hash to see the updated results!</h4>
+          </div>
+          <br/>
           <br/>
         </div>
 
@@ -369,6 +414,19 @@ class App extends Component {
         <p>{this.state.allowedmessage}</p>
           <div className ="multiBtn" >
             <button style={{display: this.state.votebtndisplay}} onClick = {this.multiVote} id="multiVote">Vote</button>
+          </div>
+          <br/>
+          <div className="loading-spinner" style={{display: this.state.spinnerdisplay, textAlign: 'center'}}>
+          <div className="load-1">
+                <p className="pulsate">Voting...(Approximately 1 Minute)</p>
+                <div className="line" id ="clearline"></div>
+                <div className="line"></div>
+                <div className="line"></div>
+                <div className="line"></div>
+            </div>
+          </div>
+          <div className="center">
+          <h4 style={{display: this.state.votecasted, textAlign: 'center', color: '#383838'	}}>Your vote has been casted! Refresh the page and re-enter the poll hash to see the updated results!</h4>
           </div>
         </div>
         <br/>

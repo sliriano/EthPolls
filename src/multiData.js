@@ -1,6 +1,6 @@
 import web3 from './web3';
 
-const address = '';
+const address = '0x381328280957d4671a2987d47b9ea8d2ef5517cd';
 
 const abi = 
 [
@@ -217,6 +217,25 @@ const abi =
 			{
 				"name": "",
 				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "isExpired",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
 			}
 		],
 		"payable": false,

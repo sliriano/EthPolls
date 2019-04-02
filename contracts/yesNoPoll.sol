@@ -16,6 +16,7 @@ contract yesNoPoll {
     uint totalVotes;
     uint start;
     uint expiration;
+    address[] allowed;
   }
 
 
@@ -82,9 +83,9 @@ contract yesNoPoll {
   }
 
   function pollStatus(bytes32 pollHash) 
-  public view returns (bool isOpen, bool isPublic, uint yes, uint no, uint total) {
+  public view returns (bool isOpen, bool isPublic, uint yes, uint no, uint total, address[] memory allowed) {
     Poll memory poll = polls[pollHash];
-    return (!poll.isClosed, poll.isPublic, poll.yesVotes, poll.noVotes, poll.totalVotes);
+    return (!poll.isClosed, poll.isPublic, poll.yesVotes, poll.noVotes, poll.totalVotes, poll.allowed);
   }
   
   function shiftArray(address creator, bytes32 pollHash) private {
@@ -94,6 +95,16 @@ contract yesNoPoll {
     }
     activePolls[creator] = activePolls[0x0000000000000000000000000000000000000000];
     delete activePolls[0x0000000000000000000000000000000000000000];
+  }
+  
+  function isExpired(bytes32 pollHash) public view returns (bool) {
+      if (polls[pollHash].expiration != 0) {
+          if (now > polls[pollHash].start+polls[pollHash].expiration) {
+              return true;
+          }
+          return false;
+      }
+      return false;
   }
   
   
@@ -108,6 +119,7 @@ contract yesNoPoll {
     //Expiration must be passed in as seconds
     polls[pollHash].expiration = expiration;
     polls[pollHash].start = now;
+    polls[pollHash].allowed = allowed;
     activePolls[msg.sender].push(pollHash);
     ownedPolls[msg.sender]++;
     if (isPublic) polls[pollHash].isPublic = true;

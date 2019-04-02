@@ -10,6 +10,7 @@ contract mulitDataPoll {
     string name;
     string description;
     string[] options;
+    address[] allowed;
     uint[] voteResults;
     mapping(address => bool) hasVoted;
     mapping(address => bool) isAllowed;
@@ -77,9 +78,9 @@ contract mulitDataPoll {
   }
 
   function pollStatus(bytes32 pollHash) 
-  public view returns (bool isOpen, bool isPublic,string[] memory options, uint[] memory results, uint total) {
+  public view returns (bool isOpen, bool isPublic,string[] memory options, uint[] memory results, address[] memory allowed, uint total) {
     Poll memory poll = polls[pollHash];
-    return (!poll.isClosed, poll.isPublic, poll.options, poll.voteResults, poll.totalVotes);
+    return (!poll.isClosed, poll.isPublic, poll.options, poll.voteResults,poll.allowed, poll.totalVotes);
   }
   
   
@@ -90,6 +91,16 @@ contract mulitDataPoll {
     }
     activePolls[creator] = activePolls[0x0000000000000000000000000000000000000000];
     delete activePolls[0x0000000000000000000000000000000000000000];
+  }
+  
+  function isExpired(bytes32 pollHash) public view returns (bool) {
+      if (polls[pollHash].expiration != 0) {
+          if (now > polls[pollHash].start+polls[pollHash].expiration) {
+              return true;
+          }
+          return false;
+      }
+      return false;
   }
 
 
@@ -106,6 +117,7 @@ contract mulitDataPoll {
     polls[pollHash].voteResults = [0,0,0,0,0];
     polls[pollHash].expiration = expiration;
     polls[pollHash].start = now;
+    polls[pollHash].allowed = allowed;
     activePolls[msg.sender].push(pollHash);
     if (isPublic) polls[pollHash].isPublic = true;
     if (polls[pollHash].isPublic == false){

@@ -1,6 +1,6 @@
 import web3 from './web3';
 
-const address = '0x4bdb0ca20648a738eb7def7636875a184485df67';
+const address = '0x7f58873292a9eea3ab4ee38fef6fc6fa6da0a3fd';
 
 const abi = 
 [
@@ -56,6 +56,10 @@ const abi =
 			{
 				"name": "total",
 				"type": "uint256"
+			},
+			{
+				"name": "allowed",
+				"type": "address[]"
 			}
 		],
 		"payable": false,

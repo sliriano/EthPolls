@@ -19,6 +19,8 @@ class App extends Component {
     ispublic: '',
     colorList: ['#C7CEEA','#B5EAD7','#E2F0CB','#FFDAC1','#FFB7B2'],
     modColorList: [],
+    allowed: [],
+    isallowed: false,
     // Yes/No State Variables
     yesVotes: '',
     noVotes: '',
@@ -32,6 +34,7 @@ class App extends Component {
     multiDataHTML: [],
     voteOptionsHTML: [],
     voteChoice: 0,
+    votebtndisplay: 'none',
     //Display variables for each option
     o1: 'none',
     o2: 'none',
@@ -82,10 +85,25 @@ class App extends Component {
         this.setState({noVotes: status['no']});
         this.setState({yesVotes: status['yes']});
         this.setState({ispublic: status['isPublic']});
+        this.setState({allowed: status['allowed']});
         this.setState({pollDescription: await yesNo.methods.getDesc(this.state.pollhash).call()});
         this.setState({pollName: await yesNo.methods.getName(this.state.pollhash).call()}); 
         this.setState({yesNoDisplay: 'initial'});
-        this.forceUpdate();
+
+        for (var i = 0; i < this.state.allowed.length; i++) {
+          if (this.state.allowed[i] === accounts[0]) {
+            this.setState({isallowed: true});
+            this.setState({votebtndisplay: 'initial'});
+          }
+        }
+        if (this.state.allowed.length === 0) {
+          this.setState({votebtndisplay: 'initial'});
+          this.setState({isallowed: true});
+        }
+        else if (this.state.isallowed === false) {
+          this.setState({allowedmessage: "You are not allowed to vote on this poll."});
+        }
+        
         //Create Chart
         this.setState({chart: <Chart yesData={parseInt(this.state.yesVotes)} noData={parseInt(this.state.noVotes)} redraw/>});
       }
@@ -101,9 +119,27 @@ class App extends Component {
         // Set Poll Property Values
         this.setState({results: status['results']});
         this.setState({options: status['options']});
+        this.setState({allowed: status['allowed']});
         this.setState({ispublic: status['isPublic']});
         this.setState({pollDescription: await multiData.methods.getDesc(this.state.pollhash).call()});
         this.setState({pollName: await multiData.methods.getName(this.state.pollhash).call()});
+        
+
+        // Check if user is allowed and display appropriately
+
+        for (var y = 0; y < this.state.allowed.length; y++) {
+          if (this.state.allowed[y] === accounts[0]) {
+            this.setState({isallowed: true});
+            this.setState({votebtndisplay: 'initial'});
+          } 
+        }
+        if (this.state.allowed.length === 0) {
+          this.setState({votebtndisplay: 'initial'});
+          this.setState({isallowed: true});
+        }
+        else if (this.state.isallowed === false) {
+          this.setState({allowedmessage: "You are not allowed to vote on this poll."});
+        }
 
         // Create Proper Color List & Pass in Values to MultiChart
         this.setState({modColorList: this.state.colorList.slice(0,this.state.colorList.length-1)});
@@ -141,55 +177,67 @@ class App extends Component {
       }
     } 
     catch(e) {
+      console.log(e);
       alert("Please make sure the pollhash is valid. Otherwise ensure that either metamask is installed and you are logged into it or you are using an Ethereum Browser");
     }
   }
 
   // Vote Yes on a Yes/No Poll
   voteYes = async (event) => {
+    var bool = false;
     try {
       const accounts = await web3.eth.getAccounts();
-      
+      bool = true;
       await yesNo.methods.vote(this.state.pollhash,true).send({
         from: accounts[0]
       });
     }
     catch (e) {
-      console.log(e);
-      alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      if (bool === false){
+        console.log(e);
+        alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      }
     }
   }
 
   // Vote NO on a Yes/No Poll
   voteNo = async (event) => {
+    var bool = false
     try {
       const accounts = await web3.eth.getAccounts();
-      
+      bool = true;
       await yesNo.methods.vote(this.state.pollhash,false).send({
         from: accounts[0]
       });
     }
     catch (e) {
-      console.log(e);
-      alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      if (bool === false) {
+        console.log(e);
+        alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
+      }
     }
   }
 
   // Cast vote on MultiData POll
   multiVote = async (event) => {
+    var bool = false;
     try {
       const accounts = await web3.eth.getAccounts();
 
       console.log(this.state.voteChoice);
-
+      bool = true;
       await multiData.methods.vote(this.state.pollhash,this.state.voteChoice+1).send({
         from: accounts[0]
       });
+
+
     }
     catch(e) {
+      if (bool === false ) {
       console.log(e);
       alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
     }
+  }
   }
 
   // Fetch User Only once, when the user opens the app
@@ -214,8 +262,8 @@ class App extends Component {
         <div className="subheader">
           <p className = "user"><span className="pulsate"><span className="userMessage">{this.state.userMessage}</span> {this.state.user}</span></p>
           <span className = "switches">
-            <button className="astext">Search for Poll</button> <span className = "line">|</span> 
-            <button className="astext">Create Poll</button> <span className = "line">|</span> 
+            <button className="astext">Search for a Poll</button> <span className = "line">|</span> 
+            <button className="astext">Create a Poll</button> <span className = "line">|</span> 
             <button className="astext">View My Polls</button>
           </span>
         </div>
@@ -225,6 +273,8 @@ class App extends Component {
         <br/>
         <br/>
 
+        {/*********** Search for Poll *************/}
+        <div className="pollSearch">
         <div className="searchBox">
           <h1>Enter Poll ID</h1>
           <p>Enter the Poll ID of the poll you wish to search then select its poll type</p>
@@ -269,7 +319,8 @@ class App extends Component {
           <span style={{textAlign: "right"}}>Yes Votes: {this.state.yesVotes}</span></h4>
           <div className="chart">
           {this.state.chart}
-          <span><button onClick={this.voteNo}id="noBtn">Vote No</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button onClick={this.voteYes} id="yesBtn">Vote Yes</button></span>
+          <p>{this.state.allowedmessage}</p>
+          <span><button style={{display: this.state.votebtndisplay}} onClick={this.voteNo}id="noBtn">Vote No</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button style={{display: this.state.votebtndisplay}} onClick={this.voteYes} id="yesBtn">Vote Yes</button></span>
           </div>
           <br/>
           <br/>
@@ -315,11 +366,18 @@ class App extends Component {
                 <span className="checkmark"></span>
             </label>
         </div>
-          <div className ="multiBtn">
-            <button onClick = {this.multiVote} id="multiVote">Vote</button>
+        <p>{this.state.allowedmessage}</p>
+          <div className ="multiBtn" >
+            <button style={{display: this.state.votebtndisplay}} onClick = {this.multiVote} id="multiVote">Vote</button>
           </div>
         </div>
+        <br/>
+        </div>
 
+        {/******************** Create a Poll ******************* */}
+        <div className="createPoll">
+          
+        </div>
 
       </div>
     );

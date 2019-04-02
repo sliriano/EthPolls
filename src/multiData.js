@@ -1,9 +1,93 @@
 import web3 from './web3';
 
-const address = '0x83c2e05cda791743209b9f0bfd07d4c539b70947';
+const address = '0x85b859c75f15036e7e0cf71a18f66cd404ae768d';
 
 const abi = 
 [
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			},
+			{
+				"name": "allowed",
+				"type": "address[]"
+			}
+		],
+		"name": "addAllowedUsers",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "cancelPoll",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"name": "options",
+				"type": "string[]"
+			},
+			{
+				"name": "allowed",
+				"type": "address[]"
+			},
+			{
+				"name": "isPublic",
+				"type": "bool"
+			},
+			{
+				"name": "expiration",
+				"type": "uint256"
+			}
+		],
+		"name": "createPoll",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "pollHash",
+				"type": "bytes32"
+			},
+			{
+				"name": "voteChoice",
+				"type": "uint256"
+			}
+		],
+		"name": "vote",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
 	{
 		"constant": true,
 		"inputs": [
@@ -31,14 +115,18 @@ const abi =
 		"constant": true,
 		"inputs": [
 			{
-				"name": "pollHash",
-				"type": "bytes32"
+				"name": "",
+				"type": "address"
+			},
+			{
+				"name": "",
+				"type": "uint256"
 			}
 		],
-		"name": "pollStatus",
+		"name": "archive",
 		"outputs": [
 			{
-				"name": "isOpen",
+				"name": "isClosed",
 				"type": "bool"
 			},
 			{
@@ -46,15 +134,27 @@ const abi =
 				"type": "bool"
 			},
 			{
-				"name": "options",
-				"type": "string[]"
+				"name": "creator",
+				"type": "address"
 			},
 			{
-				"name": "results",
-				"type": "uint256[]"
+				"name": "name",
+				"type": "string"
 			},
 			{
-				"name": "total",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"name": "totalVotes",
+				"type": "uint256"
+			},
+			{
+				"name": "start",
+				"type": "uint256"
+			},
+			{
+				"name": "expiration",
 				"type": "uint256"
 			}
 		],
@@ -63,17 +163,45 @@ const abi =
 		"type": "function"
 	},
 	{
-		"constant": false,
+		"constant": true,
+		"inputs": [
+			{
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"name": "creator",
+				"type": "address"
+			}
+		],
+		"name": "calcPollHash",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"payable": false,
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"constant": true,
 		"inputs": [
 			{
 				"name": "pollHash",
 				"type": "bytes32"
 			}
 		],
-		"name": "cancelPoll",
-		"outputs": [],
+		"name": "getDesc",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
 		"payable": false,
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -89,6 +217,25 @@ const abi =
 			{
 				"name": "",
 				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "ownedPolls",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"payable": false,
@@ -150,173 +297,30 @@ const abi =
 				"type": "bytes32"
 			}
 		],
-		"name": "getDesc",
+		"name": "pollStatus",
 		"outputs": [
 			{
-				"name": "",
-				"type": "string"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "name",
-				"type": "string"
+				"name": "isOpen",
+				"type": "bool"
 			},
 			{
-				"name": "creator",
-				"type": "address"
-			}
-		],
-		"name": "calcPollHash",
-		"outputs": [
-			{
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"payable": false,
-		"stateMutability": "pure",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "pollHash",
-				"type": "bytes32"
-			},
-			{
-				"name": "voteChoice",
-				"type": "uint256"
-			}
-		],
-		"name": "vote",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "ownedPolls",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "pollHash",
-				"type": "bytes32"
-			},
-			{
-				"name": "allowed",
-				"type": "address[]"
-			}
-		],
-		"name": "addAllowedUsers",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"name": "name",
-				"type": "string"
+				"name": "isPublic",
+				"type": "bool"
 			},
 			{
 				"name": "options",
 				"type": "string[]"
 			},
 			{
+				"name": "results",
+				"type": "uint256[]"
+			},
+			{
 				"name": "allowed",
 				"type": "address[]"
 			},
 			{
-				"name": "isPublic",
-				"type": "bool"
-			},
-			{
-				"name": "expiration",
-				"type": "uint256"
-			}
-		],
-		"name": "createPoll",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"constant": true,
-		"inputs": [
-			{
-				"name": "",
-				"type": "address"
-			},
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "archive",
-		"outputs": [
-			{
-				"name": "isClosed",
-				"type": "bool"
-			},
-			{
-				"name": "isPublic",
-				"type": "bool"
-			},
-			{
-				"name": "creator",
-				"type": "address"
-			},
-			{
-				"name": "name",
-				"type": "string"
-			},
-			{
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"name": "totalVotes",
-				"type": "uint256"
-			},
-			{
-				"name": "start",
-				"type": "uint256"
-			},
-			{
-				"name": "expiration",
+				"name": "total",
 				"type": "uint256"
 			}
 		],

@@ -43,6 +43,12 @@ class App extends Component {
     o3: 'none',
     o4: 'none',
     o5: 'none',
+    // Diplay of the website sectioins
+    searchdisplay: 'initial',
+    createdisplay: 'none',
+    mydisplay: 'none',
+    // other
+    step: '1'
   };
   
   // Determine and Initialize the User
@@ -272,6 +278,14 @@ class App extends Component {
     }
   }
 
+  nextstep() {
+    if (parseInt(this.state.step) < 5) {
+      let newstep = 1;
+      newstep+=parseInt(this.state.step);
+      this.setState({step: newstep});
+    }
+  }
+
   // Fetch User Only once, when the user opens the app
   componentDidMount() {
     this.getUser();
@@ -294,9 +308,9 @@ class App extends Component {
         <div className="subheader">
           <p className = "user"><span className="pulsate"><span className="userMessage">{this.state.userMessage}</span> {this.state.user}</span></p>
           <span className = "switches">
-            <button className="astext">Search for a Poll</button> <span className = "lines">|</span> 
-            <button className="astext">Create a Poll</button> <span className = "lines">|</span> 
-            <button className="astext">View My Polls</button>
+            <button className="astext" onClick= {event=> this.setState({searchdisplay: 'initial',createdisplay: 'none', mydisplay: 'none'})}>Search for a Poll</button> <span className = "lines"> | </span> 
+            <button className="astext" onClick= {event=> this.setState({createdisplay: 'initial', mydisplay: 'none', searchdisplay: 'none'})}>Create a Poll</button> <span className = "lines"> | </span> 
+            <button className="astext" onClick= {event=> this.setState({createdisplay: 'none', mydisplay: 'initial', searchdisplay: 'none'})}>View My Polls</button>
           </span>
         </div>
 
@@ -306,7 +320,7 @@ class App extends Component {
         <br/>
 
         {/*********** Search for Poll *************/}
-        <div className="pollSearch">
+        <div className="pollSearch" style={{display: this.state.searchdisplay}}>
         <div className="searchBox">
           <h1>Enter Poll ID</h1>
           <p>Enter the Poll ID of the poll you wish to search then select its poll type</p>
@@ -433,8 +447,28 @@ class App extends Component {
         </div>
 
         {/******************** Create a Poll ******************* */}
-        <div className="createPoll">
-          
+        <div className="createPoll" style={{display: this.state.createdisplay}}>
+          <div className="searchbox">
+            <h4 style={{marginLeft: '25%'}}>Step {this.state.step}</h4>
+
+            <h1 style={{textAlign: 'center'}}>Choose Poll Type</h1>
+            <p style={{textAlign: 'center'}}>Decide which type of poll you would like to create</p>
+            <div className="radioButtons">
+        <label className="container">Yes/No Poll
+            <input name ="radio" type="radio" onClick={event=> this.setState({pollType: 'yesNo'})}/>
+            <span className="checkmark"></span>
+          </label>
+
+          <label className="container">Multi-Data Poll
+            <input name ="radio" type="radio" onClick={event=> this.setState({pollType: 'multiData'})}/>
+            <span className="checkmark"></span>
+        </label>
+        </div>
+        <br/>
+        <div style={{textAlign: 'center'}} >
+        <button onClick={event=> this.nextstep()} className="button">Next Step</button>
+        </div>
+          </div>
         </div>
 
       </div>

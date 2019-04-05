@@ -23,6 +23,7 @@ class App extends Component {
     isallowed: false,
     spinnerdisplay: 'none',
     votecasted: 'none',
+    expiration: 0,
     // Yes/No State Variables
     yesVotes: '',
     noVotes: '',
@@ -48,7 +49,20 @@ class App extends Component {
     createdisplay: 'none',
     mydisplay: 'none',
     // other
-    step: '1'
+    step: '1',
+    option1: '',
+    option2: '',
+    option3: '',
+    option4: '',
+    option5: '',
+    hasPassed: false,
+    // Display of Create Poll Sections
+    ispublicDisplay: 'none',
+    pollTypeDisplay: 'initial',
+    enterNameDisplay: 'none',
+    expirationDisplay: 'none',
+    optionsDisplay: 'none',
+    allowedDisplay: 'none'
   };
   
   // Determine and Initialize the User
@@ -62,7 +76,6 @@ class App extends Component {
       }
       
       this.setState({userMessage: 'Current User:'});
-
     }
     catch (e) {
       alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
@@ -155,6 +168,7 @@ class App extends Component {
         else if (this.state.isallowed === false) {
           this.setState({allowedmessage: "You are not allowed to vote on this poll."});
         }
+
         // Checks if poll is expired
         const isexpired = await multiData.methods.isExpired(this.state.pollhash).call();
         if (isexpired === true) {
@@ -278,12 +292,87 @@ class App extends Component {
     }
   }
 
-  nextstep() {
-    if (parseInt(this.state.step) < 5) {
-      let newstep = 1;
-      newstep+=parseInt(this.state.step);
-      this.setState({step: newstep});
+  async nextstep() {
+    let newstep = 1;
+    if (parseInt(this.state.step) < 6) {
+      if (this.state.step === '1') {
+        this.setState({pollTypeDisplay: 'none'});
+        this.setState({ispublicDisplay: 'initial'});
+      } 
+      else if (this.state.step === 2) {
+        this.setState({ispublicDisplay: 'none'});
+        this.setState({enterNameDisplay: 'initial'});
+      }
+      else if (this.state.step === 3 ) {
+        this.setState({enterNameDisplay: 'none'});
+        this.setState({expirationDisplay: 'initial'});
+      }
+      else if (this.state.pollType === "multiData" && this.state.hasPassed === false) {
+        this.setState({expirationDisplay: 'none'});
+        this.setState({optionsDisplay: 'initial'});
+        this.setState({hasPassed: true});
+        if(this.state.ispublic === true) {
+          newstep+=1;
+        }
+      }
+      else if (this.state.ispublic === false) {
+        this.setState({optionsDisplay: 'none'});
+        this.setState({expirationDisplay: 'none'});
+        this.setState({allowedDisplay: 'initial'});
+        newstep+=1;
+      }
     }
+    else if (this.state.ispublic === true && this.state.pollType === 'multiData') {
+      const accounts = await web3.eth.getAccounts();
+
+      await multiData.methods.createPoll(this.state.pollDescription,this.state.pollName,
+        [this.state.option1,this.state.option2,this.state.option3,this.state.option4,this.state.option5],
+        [],true,this.state.expiration*3600).send({
+        from: accounts[0]
+      });
+    }
+    else if (this.state.ispublic === false && this.state.pollType === 'multiData') {
+      const accounts = await web3.eth.getAccounts();
+
+      let newArr = []
+
+      for (var x = 0; x < this.state.allowed.length; x++) {
+        newArr.push(this.state.allowed[x].replace(/^\s+|\s+$/g, ''));
+      }
+
+      await this.setState({allowed: newArr});
+
+      await multiData.methods.createPoll(this.state.pollDescription,this.state.pollName,
+        [this.state.option1,this.state.option2,this.state.option3,this.state.option4,this.state.option5]
+        ,this.state.allowed,false,this.state.expiration*3600).send({
+        from: accounts[0]
+      });
+    }
+    else if (this.state.ispublic === true && this.state.pollType === "yesNo") {
+      const accounts = await web3.eth.getAccounts();
+
+      await yesNo.methods.createPoll(this.state.pollDescription,this.state.pollName,true,[],this.state.expiration*3600).send({
+        from: accounts[0]
+      });
+    }
+    else if (this.state.ispublic === false && this.state.pollType === "yesNo") {
+      const accounts = await web3.eth.getAccounts();
+      let newArr = []
+
+      for (var y = 0; y < this.state.allowed.length; y++) {
+        newArr.push(this.state.allowed[y].replace(/^\s+|\s+$/g, ''));
+      }
+
+      await this.setState({allowed: newArr});
+
+      await yesNo.methods.createPoll(this.state.pollDescription,this.state.pollName,false,this.state.allowed,this.state.expiration*3600).send({
+        from: accounts[0]
+      });
+    }
+
+
+    newstep+=parseInt(this.state.step);
+    this.setState({step: newstep});
   }
 
   // Fetch User Only once, when the user opens the app
@@ -450,8 +539,9 @@ class App extends Component {
         <div className="createPoll" style={{display: this.state.createdisplay}}>
           <div className="searchbox">
             <h4 style={{marginLeft: '25%'}}>Step {this.state.step}</h4>
-
-            <h1 style={{textAlign: 'center'}}>Choose Poll Type</h1>
+          {/** Choose Poll Type (MultiData / YesNo) **/}
+          <div style={{display: this.state.pollTypeDisplay}}>
+          <h1 style={{textAlign: 'center'}}>Choose Poll Type</h1>
             <p style={{textAlign: 'center'}}>Decide which type of poll you would like to create</p>
             <div className="radioButtons">
         <label className="container">Yes/No Poll
@@ -464,6 +554,75 @@ class App extends Component {
             <span className="checkmark"></span>
         </label>
         </div>
+        </div>
+
+          {/** Choose Public/Private **/}
+        <div style={{display: this.state.ispublicDisplay}}>
+        <h1 style={{textAlign: 'center'}}>Choose Poll Type</h1>
+            <p style={{textAlign: 'center'}}>Decide which type of poll you would like to create</p>
+        <div className="radioButtons" >
+        <label className="container">Public
+            <input name ="radio" type="radio" onClick={event=> this.setState({ispublic: true})}/>
+            <span className="checkmark"></span>
+          </label>
+
+          <label className="container">Private
+            <input  name ="radio" type="radio" onClick={event=> this.setState({ispublic: false})}/>
+            <span  className="checkmark"></span>
+        </label>
+        </div>
+        </div>
+
+          {/* Enter Poll Name and Description */}
+        <div style={{display: this.state.enterNameDisplay}}>
+          <h1 style={{textAlign: 'center'}}>Enter Poll Name and Description</h1>
+          <p style={{textAlign: 'center'}}>Type the name of your poll followed by a description</p>
+          <div style={{textAlign: 'center'}}>
+          <input onChange={event=> this.setState({pollName: event.target.value})} placeholder="Enter Name Here" id="my-text-field" type="text" maxLength="100" style={{width: '12%', color: 'black'}}/>
+          <br/>
+          <br/>
+          <textarea id="my-textarea"maxLength="500" data-counter-label="" style={{ height: '300px', width: '300px'}}></textarea>
+          </div>      
+        </div>
+
+          {/* Enter Poll Expiration */}
+          <div style={{display: this.state.expirationDisplay}}>
+          <h1 style={{textAlign: 'center'}}>Decide if your poll will expire</h1>
+          <p style={{textAlign: 'center'}}>Choose whether or not your poll will expire. If your poll will not expire, enter 0. Otherwise select the amount of hours it will last.</p>
+          <div style={{textAlign: 'center'}}>
+            <input onChange={event=> this.setState({expiration: parseInt(event.target.value)})} placeholder="Hours" id="my-text-field" type="text" maxlength="15" style={{width: '8%', color: 'black'}}/>
+            <br/>
+          </div>  
+          </div>
+
+          {/* Enter options if multi data poll */}
+          <div style={{display: this.state.optionsDisplay}}>
+          <h1 style={{textAlign: 'center'}}>Enter your Voting Options</h1>
+          <p style={{textAlign: 'center'}}>Type in the things that voters will be voting on.</p>
+          <div style={{textAlign: 'center'}}>
+            <input onChange={event=> this.setState({option1: event.target.value})} placeholder="Option 1" id="my-text-field" type="text"  style={{width: '8%', color: 'black'}}/>
+            <br/>
+            <input onChange={event=> this.setState({option2: event.target.value})} placeholder="Option 2" id="my-text-field" type="text"  style={{width: '8%', color: 'black'}}/>
+            <br/>
+            <input onChange={event=> this.setState({option3: event.target.value})} placeholder="Option 3" id="my-text-field" type="text"  style={{width: '8%', color: 'black'}}/>
+            <br/>
+            <input onChange={event=> this.setState({option4: event.target.value})} placeholder="Option 4" id="my-text-field" type="text"  style={{width: '8%', color: 'black'}}/>
+            <br/>
+            <input onChange={event=> this.setState({option5: event.target.value})} placeholder="Option 5" id="my-text-field" type="text"  style={{width: '8%', color: 'black'}}/>
+            <br/>
+          </div>  
+          </div>
+
+          {/* Enter Allowed Users */}
+          <div style={{display: this.state.allowedDisplay}}>
+          <h1 style={{textAlign: 'center'}}>Enter a comma separated list of users</h1>
+          <p style={{textAlign: 'center'}}>Example: 0x74ff48fc3762eB4dC5E579A73ECffCBab4b9939E,0x9E01CBf6e04aBc6157Fe538A4EB03D879B670af0,0xCE43a16E7a848F9c51f41Ef1b77022118527d41A</p>
+          <div style={{textAlign: 'center'}}>
+            <textarea onChange={event=> this.setState({allowed: event.target.value.split(",")})} id="my-textarea" maxLength="100000" data-counter-label="" style={{ height: '300px', width: '300px'}}></textarea>
+            <br/>
+          </div> 
+          </div>
+
         <br/>
         <div style={{textAlign: 'center'}} >
         <button onClick={event=> this.nextstep()} className="button">Next Step</button>

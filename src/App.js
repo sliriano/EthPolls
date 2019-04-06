@@ -56,13 +56,17 @@ class App extends Component {
     option4: '',
     option5: '',
     hasPassed: false,
+    isready: 0,
+    buttonText: 'Next Steps',
+    createspinner: 'none',
     // Display of Create Poll Sections
     ispublicDisplay: 'none',
     pollTypeDisplay: 'initial',
     enterNameDisplay: 'none',
     expirationDisplay: 'none',
     optionsDisplay: 'none',
-    allowedDisplay: 'none'
+    allowedDisplay: 'none',
+    createpolldisplay: 'none'
   };
   
   // Determine and Initialize the User
@@ -292,88 +296,160 @@ class App extends Component {
     }
   }
 
-  async nextstep() {
-    let newstep = 1;
-    if (parseInt(this.state.step) < 6) {
-      if (this.state.step === '1') {
-        this.setState({pollTypeDisplay: 'none'});
-        this.setState({ispublicDisplay: 'initial'});
-      } 
-      else if (this.state.step === 2) {
-        this.setState({ispublicDisplay: 'none'});
-        this.setState({enterNameDisplay: 'initial'});
-      }
-      else if (this.state.step === 3 ) {
-        this.setState({enterNameDisplay: 'none'});
-        this.setState({expirationDisplay: 'initial'});
-      }
-      else if (this.state.pollType === "multiData" && this.state.hasPassed === false) {
-        this.setState({expirationDisplay: 'none'});
-        this.setState({optionsDisplay: 'initial'});
-        this.setState({hasPassed: true});
-        if(this.state.ispublic === true) {
+  nextstep = async (event) => {
+    try {
+      let newstep = 1;
+      if (parseInt(this.state.step) < 6) {
+        if (this.state.step === '1') {
+          this.setState({pollTypeDisplay: 'none'});
+          this.setState({ispublicDisplay: 'initial'});
+        } 
+        else if (this.state.step === 2) {
+          this.setState({ispublicDisplay: 'none'});
+          this.setState({enterNameDisplay: 'initial'});
+        }
+        else if (this.state.step === 3 ) {
+          this.setState({enterNameDisplay: 'none'});
+          this.setState({expirationDisplay: 'initial'});
+          if (this.state.ispublic === true && this.state.pollType === 'yesNo') {
+            newstep+=2;
+          }
+        }
+        else if (this.state.pollType === "multiData" && this.state.hasPassed === false) {
+          this.setState({expirationDisplay: 'none'});
+          this.setState({optionsDisplay: 'initial'});
+          this.setState({hasPassed: true});
+          if(this.state.ispublic === true) {
+            newstep+=1;
+          }
+        }
+        else if (this.state.ispublic === false) {
+          this.setState({optionsDisplay: 'none'});
+          this.setState({expirationDisplay: 'none'});
+          this.setState({allowedDisplay: 'initial'});
           newstep+=1;
         }
       }
-      else if (this.state.ispublic === false) {
-        this.setState({optionsDisplay: 'none'});
-        this.setState({expirationDisplay: 'none'});
-        this.setState({allowedDisplay: 'initial'});
-        newstep+=1;
+      else if (this.state.ispublic === true && this.state.pollType === 'multiData') {
+        if (this.state.isready > 0) {
+          this.setState({createspinner: 'initial'});
+          const accounts = await web3.eth.getAccounts();
+          const newPollHash = await multiData.methods.calcPollHash(this.state.pollName,accounts[0]).call();
+
+          await this.setState({pollhash: newPollHash});
+
+          await multiData.methods.createPoll(this.state.pollDescription,this.state.pollName,
+            [this.state.option1,this.state.option2,this.state.option3,this.state.option4,this.state.option5],
+            [],true,this.state.expiration*3600).send({
+            from: accounts[0]
+          });
+
+        }
+        else {
+          this.setState({isready: 1});
+          this.setState({createpolldisplay: 'initial'});
+          this.setState({optionsDisplay: 'none'});
+          this.setState({expirationDisplay: 'none'});
+          this.setState({buttonText: 'Create Your Poll'});
+        }
       }
-    }
-    else if (this.state.ispublic === true && this.state.pollType === 'multiData') {
-      const accounts = await web3.eth.getAccounts();
+      else if (this.state.ispublic === false && this.state.pollType === 'multiData') {
+        if (this.state.isready > 0) {
+          this.setState({createspinner: 'initial'});
+          const accounts = await web3.eth.getAccounts();
 
-      await multiData.methods.createPoll(this.state.pollDescription,this.state.pollName,
-        [this.state.option1,this.state.option2,this.state.option3,this.state.option4,this.state.option5],
-        [],true,this.state.expiration*3600).send({
-        from: accounts[0]
-      });
-    }
-    else if (this.state.ispublic === false && this.state.pollType === 'multiData') {
-      const accounts = await web3.eth.getAccounts();
+          let newArr = []
 
-      let newArr = []
+          for (var x = 0; x < this.state.allowed.length; x++) {
+            newArr.push(this.state.allowed[x].replace(/^\s+|\s+$/g, ''));
+          }
 
-      for (var x = 0; x < this.state.allowed.length; x++) {
-        newArr.push(this.state.allowed[x].replace(/^\s+|\s+$/g, ''));
+          await this.setState({allowed: newArr});
+
+          const newPollHash = await multiData.methods.calcPollHash(this.state.pollName,accounts[0]).call();
+
+          await this.setState({pollhash: newPollHash});
+
+          await multiData.methods.createPoll(this.state.pollDescription,this.state.pollName,
+            [this.state.option1,this.state.option2,this.state.option3,this.state.option4,this.state.option5]
+            ,this.state.allowed,false,this.state.expiration*3600).send({
+            from: accounts[0]
+          });
+        }
+        else {
+          this.setState({isready: 1});
+          this.setState({createpolldisplay: 'initial'});
+          this.setState({optionsDisplay: 'none'});
+          this.setState({expirationDisplay: 'none'});
+          this.setState({allowedDisplay: 'none'});
+          this.setState({buttonText: 'Create Your Poll'});
+        }
       }
+      else if (this.state.ispublic === true && this.state.pollType === "yesNo") {
+        if (this.state.isready > 0) {
+          this.setState({createspinner: 'initial'});
+          const accounts = await web3.eth.getAccounts();
 
-      await this.setState({allowed: newArr});
+          const newPollHash = await yesNo.methods.calcPollHash(this.state.pollName,accounts[0]).call();
 
-      await multiData.methods.createPoll(this.state.pollDescription,this.state.pollName,
-        [this.state.option1,this.state.option2,this.state.option3,this.state.option4,this.state.option5]
-        ,this.state.allowed,false,this.state.expiration*3600).send({
-        from: accounts[0]
-      });
-    }
-    else if (this.state.ispublic === true && this.state.pollType === "yesNo") {
-      const accounts = await web3.eth.getAccounts();
+          await this.setState({pollhash: newPollHash});
 
-      await yesNo.methods.createPoll(this.state.pollDescription,this.state.pollName,true,[],this.state.expiration*3600).send({
-        from: accounts[0]
-      });
-    }
-    else if (this.state.ispublic === false && this.state.pollType === "yesNo") {
-      const accounts = await web3.eth.getAccounts();
-      let newArr = []
+          await yesNo.methods.createPoll(this.state.pollDescription,this.state.pollName,true,[],this.state.expiration*3600).send({
+            from: accounts[0]
+          });
 
-      for (var y = 0; y < this.state.allowed.length; y++) {
-        newArr.push(this.state.allowed[y].replace(/^\s+|\s+$/g, ''));
+        }
+        else {
+          this.setState({isready: 1});
+          this.setState({createpolldisplay: 'initial'});
+          this.setState({optionsDisplay: 'none'});
+          this.setState({expirationDisplay: 'none'});
+          this.setState({buttonText: 'Create Your Poll'}); 
+        }
       }
+      else if (this.state.ispublic === false && this.state.pollType === "yesNo") {
+        if (this.state.isready > 0) {
+          this.setState({createspinner: 'initial'});
+          const accounts = await web3.eth.getAccounts();
+          let newArr = []
 
-      await this.setState({allowed: newArr});
+          for (var y = 0; y < this.state.allowed.length; y++) {
+            newArr.push(this.state.allowed[y].replace(/^\s+|\s+$/g, ''));
+          }
+          const newPollHash = await yesNo.methods.calcPollHash(this.state.pollName,accounts[0]).call();
 
-      await yesNo.methods.createPoll(this.state.pollDescription,this.state.pollName,false,this.state.allowed,this.state.expiration*3600).send({
-        from: accounts[0]
-      });
+          await this.setState({pollhash: newPollHash});
+
+          await this.setState({allowed: newArr});
+
+          await yesNo.methods.createPoll(this.state.pollDescription,this.state.pollName,false,this.state.allowed,this.state.expiration*3600).send({
+            from: accounts[0]
+          });
+        }
+        else {
+          this.setState({isready: 1});
+          this.setState({createpolldisplay: 'initial'});
+          this.setState({optionsDisplay: 'none'});
+          this.setState({expirationDisplay: 'none'});
+          this.setState({allowedDisplay: 'none'});
+          this.setState({buttonText: 'Create Your Poll'}); 
+        }
+      }
+      newstep+=parseInt(this.state.step);
+      this.setState({step: newstep});
     }
-
-
-    newstep+=parseInt(this.state.step);
-    this.setState({step: newstep});
+    catch(e) {
+      this.setState({createspinner: 'none'});
+    }
   }
+
+  getDashboard = async (event) => {
+    let b = true;
+    while (b) {
+      
+    }
+  }
+
 
   // Fetch User Only once, when the user opens the app
   componentDidMount() {
@@ -397,7 +473,7 @@ class App extends Component {
         <div className="subheader">
           <p className = "user"><span className="pulsate"><span className="userMessage">{this.state.userMessage}</span> {this.state.user}</span></p>
           <span className = "switches">
-            <button className="astext" onClick= {event=> this.setState({searchdisplay: 'initial',createdisplay: 'none', mydisplay: 'none'})}>Search for a Poll</button> <span className = "lines"> | </span> 
+            <button className="astext" onClick={event=> window.location.reload()}>Search for a Poll</button> <span className = "lines"> | </span> 
             <button className="astext" onClick= {event=> this.setState({createdisplay: 'initial', mydisplay: 'none', searchdisplay: 'none'})}>Create a Poll</button> <span className = "lines"> | </span> 
             <button className="astext" onClick= {event=> this.setState({createdisplay: 'none', mydisplay: 'initial', searchdisplay: 'none'})}>View My Polls</button>
           </span>
@@ -623,11 +699,33 @@ class App extends Component {
           </div> 
           </div>
 
+          {/* Create Poll Display */}
+          <div style={{display: this.state.createpolldisplay}}>
+          <h1 style={{textAlign: 'center'}}>Click the button to create your poll</h1>
+          <p style={{textAlign: 'center'}}>Once your poll has been created you will be given the Poll ID. This is used when searching for polls.</p>
+          <br/>
+          <div style={{display: this.state.createspinner, textAlign: 'center'}}>
+          <div className="load-1">
+                <p className="pulsate">Creating Poll...(Approximately 1 Minute)</p>
+                <div className="line" id ="clearline"></div>
+                <div className="line"></div>
+                <div className="line"></div>
+                <div className="line"></div>
+            </div>
+          </div>
+          <h2 style={{textAlign: 'center', fontWeight: 300}}>Your Poll ID: {this.state.pollhash}</h2>
+          </div>
+
         <br/>
         <div style={{textAlign: 'center'}} >
-        <button onClick={event=> this.nextstep()} className="button">Next Step</button>
+        <button onClick={event=> this.nextstep()} className="button">{this.state.buttonText}</button>
         </div>
           </div>
+        </div>
+
+        {/***************** Poll DashBoard *****************/}
+        <div style={{display: this.state.mydisplay}}>
+
         </div>
 
       </div>

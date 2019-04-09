@@ -66,7 +66,10 @@ class App extends Component {
     expirationDisplay: 'none',
     optionsDisplay: 'none',
     allowedDisplay: 'none',
-    createpolldisplay: 'none'
+    createpolldisplay: 'none',
+    // Poll Dashboard
+    pollHashListYesNo: [],
+    pollHashListMulti: []
   };
   
   // Determine and Initialize the User
@@ -444,10 +447,38 @@ class App extends Component {
   }
 
   getDashboard = async (event) => {
-    let b = true;
-    while (b) {
-      
+    let hashlist = [];
+    let counter = 0;
+    // fetching poll Hashes for yesNo
+    while(counter < 256) {
+      try {
+        hashlist.push(await yesNo.methods.activePolls(this.state.user, counter).call());
+        counter++;
+      }
+      catch(e) {
+        console.log("finished process");
+        break;
+      }
     }
+    await this.setState({pollHashListYesNo: hashlist});
+    console.log(this.state.pollHashListYesNo);
+
+    counter = 0;
+    hashlist = [];
+    
+    // fetching poll hashes for multiData
+    while(counter < 256) {
+      try{
+        hashlist.push(await multiData.methods.activePolls(this.state.user,counter).call());
+        counter++;
+      }
+      catch(e){
+        console.log("finished process");
+        break;
+      }
+    }
+    await this.setState({pollHashListMulti: hashlist});
+    console.log(this.state.pollHashListMulti);
   }
 
 
@@ -723,9 +754,14 @@ class App extends Component {
           </div>
         </div>
 
-        {/***************** Poll DashBoard *****************/}
+        {/***************** Poll Dashboard *****************/}
         <div style={{display: this.state.mydisplay}}>
-
+        <button onClick={event => this.getDashboard()}>Test Button</button>
+        <div className="row">
+          <div className="column"></div>
+          <div className="column"></div>
+          <div className="column"></div>
+        </div>
         </div>
 
       </div>

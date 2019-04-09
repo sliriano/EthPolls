@@ -291,3 +291,23 @@ input:focus {
 .center{
     text-align: center;
 }
+
+/* Three Column Layout */
+.column {
+    float: left;
+  }
+  
+  .left, .right {
+    width: 25%;
+  }
+  
+  .middle {
+    width: 50%;
+  }
+  /* Responsive layout - when the screen is less than 600px wide, make the three columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 600px) {
+    .column {
+      width: 100%;
+    }
+  }
+

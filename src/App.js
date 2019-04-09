@@ -69,7 +69,9 @@ class App extends Component {
     createpolldisplay: 'none',
     // Poll Dashboard
     pollHashListYesNo: [],
-    pollHashListMulti: []
+    pollHashListMulti: [],
+    yesNoHTML: [],
+    multiHTML: []
   };
   
   // Determine and Initialize the User
@@ -449,6 +451,8 @@ class App extends Component {
   getDashboard = async (event) => {
     let hashlist = [];
     let counter = 0;
+    const accounts = await web3.eth.getAccounts();
+
     // fetching poll Hashes for yesNo
     while(counter < 256) {
       try {
@@ -479,6 +483,25 @@ class App extends Component {
     }
     await this.setState({pollHashListMulti: hashlist});
     console.log(this.state.pollHashListMulti);
+
+    // get YesNo HTML
+    let htmlList = []
+    for (var x = 0; x < this.state.pollHashListYesNo.length;x++){
+
+
+      const status = await yesNo.methods.pollStatus(this.state.pollHashListYesNo[x]).call({
+        from: accounts[0]
+      });
+
+      const no = status['no'];
+      const yes = status['yes'];
+      const name = await yesNo.methods.getName(this.state.pollHashListYesNo[x]).call();
+      const desc = await yesNo.methods.getDesc(this.state.pollHashListYesNo[x]).call();
+      console.log(desc);
+      let pollhtml = <div style={{textAlign:'center'}}><h3>{name}</h3><p>{desc}</p><p>Yes Votes: {yes}</p><p>No Votes: {no}</p></div>
+      htmlList.push(pollhtml);
+    }
+    this.setState({yesNoHTML: htmlList});
   }
 
 
@@ -757,10 +780,8 @@ class App extends Component {
         {/***************** Poll Dashboard *****************/}
         <div style={{display: this.state.mydisplay}}>
         <button onClick={event => this.getDashboard()}>Test Button</button>
-        <div className="row">
-          <div className="column"></div>
-          <div className="column"></div>
-          <div className="column"></div>
+        <div>
+          {this.state.yesNoHTML}
         </div>
         </div>
 

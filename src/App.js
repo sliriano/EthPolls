@@ -71,7 +71,9 @@ class App extends Component {
     pollHashListYesNo: [],
     pollHashListMulti: [],
     yesNoHTML: [],
-    multiHTML: []
+    multiHTML: [],
+    multiPollHashDisplay: [],
+    initial: ''
   };
   
   // Determine and Initialize the User
@@ -79,7 +81,6 @@ class App extends Component {
     try {
       const accounts = await web3.eth.getAccounts();
       this.setState({user: accounts[0]});
-
       if (web3.currentProvider['host'] === 'metamask') {
         window.web3.currentProvider.enable();
       }
@@ -87,6 +88,9 @@ class App extends Component {
       this.setState({userMessage: 'Current User:'});
     }
     catch (e) {
+      console.log(e);
+      this.setState({user: ''});
+      this.setState({userMessage: ''});
       alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
       this.setState({mustHave: 'You Must Have Metamask or an Ethereum browser in order to use this DApp. Recommended:' + <a href="https://metamask.io">"metamask.io"</a>})
     }
@@ -301,6 +305,7 @@ class App extends Component {
     }
   }
 
+  // Algorithm for going through the process of creating any type of poll.
   nextstep = async (event) => {
     try {
       let newstep = 1;
@@ -448,6 +453,12 @@ class App extends Component {
     }
   }
 
+  switchDisplay(index) {
+    let newArray = this.state.multiPollHashDisplay;
+    newArray[index] = 'initial';
+    this.setState({multiPollHashDisplay: newArray});
+  }
+
   getDashboard = async (event) => {
     let hashlist = [];
     let counter = 0;
@@ -460,13 +471,11 @@ class App extends Component {
         counter++;
       }
       catch(e) {
-        console.log("finished process");
         break;
       }
     }
     await this.setState({pollHashListYesNo: hashlist});
-    console.log(this.state.pollHashListYesNo);
-
+  
     counter = 0;
     hashlist = [];
     
@@ -477,17 +486,15 @@ class App extends Component {
         counter++;
       }
       catch(e){
-        console.log("finished process");
         break;
       }
     }
     await this.setState({pollHashListMulti: hashlist});
-    console.log(this.state.pollHashListMulti);
 
     // get YesNo HTML
-    let htmlList = []
+    let htmlInnerList = []
+    let htmlList = [<h2>Yes/No Polls</h2>]
     for (var x = 0; x < this.state.pollHashListYesNo.length;x++){
-
 
       const status = await yesNo.methods.pollStatus(this.state.pollHashListYesNo[x]).call({
         from: accounts[0]
@@ -497,13 +504,71 @@ class App extends Component {
       const yes = status['yes'];
       const name = await yesNo.methods.getName(this.state.pollHashListYesNo[x]).call();
       const desc = await yesNo.methods.getDesc(this.state.pollHashListYesNo[x]).call();
-      console.log(desc);
-      let pollhtml = <div style={{textAlign:'center'}}><h3>{name}</h3><p>{desc}</p><p>Yes Votes: {yes}</p><p>No Votes: {no}</p></div>
-      htmlList.push(pollhtml);
-    }
-    this.setState({yesNoHTML: htmlList});
-  }
+      const yesNoId = "yesNo"+x.toString();
+      let pollhtml = <div className="column" style={{textAlign:'center'}}><h3>{name}</h3><p>{desc}</p><p>Yes Votes: {yes}</p><p >No Votes: {no}</p>
+      <button className="pollhashbutton" onClick={event=> document.getElementById(yesNoId).style.display="initial"}>Show Poll ID</button><br/>
+      <p id ={yesNoId} style={{fontSize: '11px',display: 'none'}}> {this.state.pollHashListYesNo[x]}</p></div>
+      
+      htmlInnerList.splice(htmlInnerList.length-2,0,pollhtml);
 
+      if(x+1 > 2 && ((x+1) % 3 === 0)) {
+        htmlList.push(htmlInnerList);
+        htmlList.push([<br/>]);
+        htmlList.push([<span style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
+        htmlInnerList = [];
+      } else if (x+1 === this.state.pollHashListYesNo.length){
+        htmlList.push(htmlInnerList);
+        htmlList.push([<br/>]);
+        htmlInnerList = [];
+      }
+    }
+
+    if(htmlList.length > 1)
+      this.setState({yesNoHTML: htmlList});
+
+    // get MultiData HTML
+    htmlInnerList = [];
+    htmlList = [<h2>Multi-Data Polls</h2>];
+
+    for (var y = 0; y < this.state.pollHashListMulti.length;y++){
+
+      const status = await multiData.methods.pollStatus(this.state.pollHashListMulti[y]).call({
+        from: accounts[0]
+      });
+
+      await this.setState({results: status['results']});
+      await this.setState({options: status['options']});
+      await this.setState({allowed: status['allowed']});
+      const name = await multiData.methods.getName(this.state.pollHashListMulti[y]).call();
+      const desc = await multiData.methods.getDesc(this.state.pollHashListMulti[y]).call();
+      // Only use the options being used
+      let optionList = []
+      for (var i =0; i < this.state.options.length; i++) {
+        if (this.state.options[i] !== '')
+          optionList.push(<p>{this.state.options[i]}:{this.state.results[i]}</p>);
+      }
+
+      const id = 'multi'+y.toString();
+
+      let pollhtml = <div className="column" style={{textAlign: 'center'}}><h3>{name}</h3><p>{desc}</p><p>{optionList}</p>
+      <button className="button" onClick={event=> document.getElementById(id).style.display = "initial"}>Show Poll ID</button><br/> <p id={id} style={{fontSize: '11px', display: 'none'}}>{this.state.pollHashListMulti[y]}</p> </div>;
+      
+      htmlInnerList.splice(htmlInnerList.length-2,0,pollhtml);
+
+      if(y+1 > 2 && ((y+1) % 3 === 0)) {
+        htmlList.push(htmlInnerList);
+        htmlList.push(<span style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>)
+        htmlInnerList = [];
+      } else if (y+1 === this.state.pollHashListMulti.length){
+        htmlList.push(htmlInnerList);
+        htmlList.push([<br/>])
+        htmlInnerList = [];
+      }
+    }
+
+    if(htmlList.length > 1)
+      await this.setState({multiDataHTML: htmlList});
+  }
 
   // Fetch User Only once, when the user opens the app
   componentDidMount() {
@@ -696,7 +761,7 @@ class App extends Component {
             <span className="checkmark"></span>
           </label>
 
-          <label className="container">Private
+          <label className="container">Restricted (only users you choose can vote)
             <input  name ="radio" type="radio" onClick={event=> this.setState({ispublic: false})}/>
             <span  className="checkmark"></span>
         </label>
@@ -711,7 +776,7 @@ class App extends Component {
           <input onChange={event=> this.setState({pollName: event.target.value})} placeholder="Enter Name Here" id="my-text-field" type="text" maxLength="100" style={{width: '12%', color: 'black'}}/>
           <br/>
           <br/>
-          <textarea id="my-textarea"maxLength="500" data-counter-label="" style={{ height: '300px', width: '300px'}}></textarea>
+          <textarea onChange={event=> this.setState({pollDescription: event.target.value})} id="my-textarea"maxLength="500" data-counter-label="" style={{ height: '300px', width: '300px'}}></textarea>
           </div>      
         </div>
 
@@ -720,7 +785,7 @@ class App extends Component {
           <h1 style={{textAlign: 'center'}}>Decide if your poll will expire</h1>
           <p style={{textAlign: 'center'}}>Choose whether or not your poll will expire. If your poll will not expire, enter 0. Otherwise select the amount of hours it will last.</p>
           <div style={{textAlign: 'center'}}>
-            <input onChange={event=> this.setState({expiration: parseInt(event.target.value)})} placeholder="Hours" id="my-text-field" type="text" maxlength="15" style={{width: '8%', color: 'black'}}/>
+            <input onChange={event=> this.setState({expiration: parseInt(event.target.value)})} placeholder="Hours" id="my-text-field" type="text" maxLength="15" style={{width: '8%', color: 'black'}}/>
             <br/>
           </div>  
           </div>
@@ -767,7 +832,7 @@ class App extends Component {
                 <div className="line"></div>
             </div>
           </div>
-          <h2 style={{textAlign: 'center', fontWeight: 300}}>Your Poll ID: {this.state.pollhash}</h2>
+          <h2 id="createdPollHash" style={{textAlign: 'center', fontWeight: 300}}>Your Poll ID: {this.state.pollhash}</h2>
           </div>
 
         <br/>
@@ -781,10 +846,29 @@ class App extends Component {
         <div style={{display: this.state.mydisplay}}>
         <button onClick={event => this.getDashboard()}>Test Button</button>
         <div>
+        {/* Three Column Layout for poll visual */}
+        <div id="dashwrapper">
+        <div className="row">
           {this.state.yesNoHTML}
         </div>
         </div>
 
+        <div>
+          <br/>
+          <br/>
+          <br/>
+        </div>
+
+        <div id="dashwrapper">
+        <div className="row">
+          {this.state.multiDataHTML}
+        </div>
+        </div>
+
+        </div>
+        </div>
+
+      {/* End */}
       </div>
     );
   }

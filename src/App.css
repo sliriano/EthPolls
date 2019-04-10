@@ -106,6 +106,20 @@ input:focus {
     box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 }
 
+.pollhashbutton {
+  background-color: #cdc7d9; /* Off White */
+  border: none;
+  color: black;
+  padding: 10px 26px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+}
+.pollhashbutton:hover {
+  box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
 .centerbtn {
     text-align: center;
 }
@@ -292,18 +306,17 @@ input:focus {
     text-align: center;
 }
 
-/* Three Column Layout */
 .column {
-    float: left;
-  }
-  
-  .left, .right {
-    width: 25%;
-  }
-  
-  .middle {
-    width: 50%;
-  }
+  float: left;
+  width: 33.33%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
   /* Responsive layout - when the screen is less than 600px wide, make the three columns stack on top of each other instead of next to each other */
 @media screen and (max-width: 600px) {
     .column {
@@ -311,3 +324,7 @@ input:focus {
     }
   }
 
+#dashwrapper{
+  width: 80%;
+  margin: 0 auto;
+}

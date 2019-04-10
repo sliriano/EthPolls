@@ -73,7 +73,7 @@ class App extends Component {
     yesNoHTML: [],
     multiHTML: [],
     multiPollHashDisplay: [],
-    initial: ''
+    initial: '',
   };
   
   // Determine and Initialize the User
@@ -453,10 +453,11 @@ class App extends Component {
     }
   }
 
-  switchDisplay(index) {
-    let newArray = this.state.multiPollHashDisplay;
-    newArray[index] = 'initial';
-    this.setState({multiPollHashDisplay: newArray});
+  switchDisplay(ID) {
+    if(document.getElementById(ID).style.display === "none")
+      document.getElementById(ID).style.display = "initial";
+    else
+      document.getElementById(ID).style.display = "none";
   }
 
   getDashboard = async (event) => {
@@ -493,7 +494,7 @@ class App extends Component {
 
     // get YesNo HTML
     let htmlInnerList = []
-    let htmlList = [<h2>Yes/No Polls</h2>]
+    let htmlList = [<h2 key="yes/nopoll text">Yes/No Polls</h2>]
     for (var x = 0; x < this.state.pollHashListYesNo.length;x++){
 
       const status = await yesNo.methods.pollStatus(this.state.pollHashListYesNo[x]).call({
@@ -505,16 +506,22 @@ class App extends Component {
       const name = await yesNo.methods.getName(this.state.pollHashListYesNo[x]).call();
       const desc = await yesNo.methods.getDesc(this.state.pollHashListYesNo[x]).call();
       const yesNoId = "yesNo"+x.toString();
-      let pollhtml = <div className="column" style={{textAlign:'center'}}><h3>{name}</h3><p>{desc}</p><p>Yes Votes: {yes}</p><p >No Votes: {no}</p>
-      <button className="pollhashbutton" onClick={event=> document.getElementById(yesNoId).style.display="initial"}>Show Poll ID</button><br/>
-      <p id ={yesNoId} style={{fontSize: '11px',display: 'none'}}> {this.state.pollHashListYesNo[x]}</p></div>
+
+      let pollhtml = 
+      <div className="column" style={{textAlign:'center'}}><h3>{name}</h3>
+      <p>{desc}</p><p>Yes Votes: {yes}</p><p>No Votes: {no}</p>
+      <button className="pollhashbutton" onClick={event=> this.switchDisplay(yesNoId)}>
+        Show Poll ID
+      </button>
+      <br/>
+      <p id ={yesNoId} style={{fontSize: '11px',display: 'none'}}>{this.state.pollHashListYesNo[x]}</p></div>;
       
       htmlInnerList.splice(htmlInnerList.length-2,0,pollhtml);
 
       if(x+1 > 2 && ((x+1) % 3 === 0)) {
         htmlList.push(htmlInnerList);
         htmlList.push([<br/>]);
-        htmlList.push([<span style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
+        htmlList.push([<span key={"yesNoSPanStyle"+x.toString()} style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
         htmlInnerList = [];
       } else if (x+1 === this.state.pollHashListYesNo.length){
         htmlList.push(htmlInnerList);
@@ -528,36 +535,36 @@ class App extends Component {
 
     // get MultiData HTML
     htmlInnerList = [];
-    htmlList = [<h2>Multi-Data Polls</h2>];
-
+    htmlList = [<h2 key="multidata key">Multi-Data Polls</h2>];
     for (var y = 0; y < this.state.pollHashListMulti.length;y++){
 
       const status = await multiData.methods.pollStatus(this.state.pollHashListMulti[y]).call({
         from: accounts[0]
       });
 
-      await this.setState({results: status['results']});
-      await this.setState({options: status['options']});
-      await this.setState({allowed: status['allowed']});
+      const tempResults = status['results'];
+      const tempOptions = status['options'];
       const name = await multiData.methods.getName(this.state.pollHashListMulti[y]).call();
       const desc = await multiData.methods.getDesc(this.state.pollHashListMulti[y]).call();
       // Only use the options being used
       let optionList = []
-      for (var i =0; i < this.state.options.length; i++) {
-        if (this.state.options[i] !== '')
-          optionList.push(<p>{this.state.options[i]}:{this.state.results[i]}</p>);
+      for (var i =0; i < tempOptions.length; i++) {
+        if (tempOptions[i] !== '')
+          optionList.push(<p key={"optionKey"+y.toString()+i.toString()}>{tempOptions[i]}:{tempResults[i]}</p>);
       }
 
       const id = 'multi'+y.toString();
 
-      let pollhtml = <div className="column" style={{textAlign: 'center'}}><h3>{name}</h3><p>{desc}</p><p>{optionList}</p>
-      <button className="button" onClick={event=> document.getElementById(id).style.display = "initial"}>Show Poll ID</button><br/> <p id={id} style={{fontSize: '11px', display: 'none'}}>{this.state.pollHashListMulti[y]}</p> </div>;
+      let pollhtml = <div className="column" style={{textAlign: 'center'}}><h3>{name}</h3><p>{desc}</p>{optionList}
+      <button onClick={event=> this.switchDisplay(id)} className="pollhashbutton">Show Poll ID</button><br/><br/>
+      <p id={id} style={{fontSize: '11px', display:'none'}}>{this.state.pollHashListMulti[y]}</p></div>
       
       htmlInnerList.splice(htmlInnerList.length-2,0,pollhtml);
 
       if(y+1 > 2 && ((y+1) % 3 === 0)) {
         htmlList.push(htmlInnerList);
-        htmlList.push(<span style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>)
+        htmlList.push([<br/>]);
+        htmlList.push([<span key ={"spanstyle"+y.toString()}style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>])
         htmlInnerList = [];
       } else if (y+1 === this.state.pollHashListMulti.length){
         htmlList.push(htmlInnerList);

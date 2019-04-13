@@ -73,7 +73,7 @@ class App extends Component {
     yesNoHTML: [],
     multiHTML: [],
     multiPollHashDisplay: [],
-    initial: '',
+    dashboardSpinner: 'none'
   };
   
   // Determine and Initialize the User
@@ -454,13 +454,15 @@ class App extends Component {
   }
 
   switchDisplay(ID) {
-    if(document.getElementById(ID).style.display === "none")
-      document.getElementById(ID).style.display = "initial";
+    if(document.getElementById(ID).style.display === "none") {
+      document.getElementById(ID).style.display = "inline";
+      console.log('success');
+    }
     else
       document.getElementById(ID).style.display = "none";
   }
 
-  getDashboard = async (event) => {
+  getYesNo = async (event) => {
     let hashlist = [];
     let counter = 0;
     const accounts = await web3.eth.getAccounts();
@@ -477,21 +479,6 @@ class App extends Component {
     }
     await this.setState({pollHashListYesNo: hashlist});
   
-    counter = 0;
-    hashlist = [];
-    
-    // fetching poll hashes for multiData
-    while(counter < 256) {
-      try{
-        hashlist.push(await multiData.methods.activePolls(this.state.user,counter).call());
-        counter++;
-      }
-      catch(e){
-        break;
-      }
-    }
-    await this.setState({pollHashListMulti: hashlist});
-
     // get YesNo HTML
     let htmlInnerList = []
     let htmlList = [<h2 key="yes/nopoll text">Yes/No Polls</h2>]
@@ -533,9 +520,29 @@ class App extends Component {
     if(htmlList.length > 1)
       this.setState({yesNoHTML: htmlList});
 
+
+  }
+
+  getMulti = async (event) => {
+    let counter = 0;
+    let hashlist = [];
+    const accounts = await web3.eth.getAccounts();
+
+    // fetching poll hashes for multiData
+    while(counter < 256) {
+      try{
+        hashlist.push(await multiData.methods.activePolls(this.state.user,counter).call());
+        counter++;
+      }
+      catch(e){
+        break;
+      }
+    }
+    await this.setState({pollHashListMulti: hashlist});
+
     // get MultiData HTML
-    htmlInnerList = [];
-    htmlList = [<h2 key="multidata key">Multi-Data Polls</h2>];
+    let htmlInnerList = [];
+    let htmlList = [<h2 key="multidata key">Multi-Data Polls</h2>];
     for (var y = 0; y < this.state.pollHashListMulti.length;y++){
 
       const status = await multiData.methods.pollStatus(this.state.pollHashListMulti[y]).call({
@@ -550,31 +557,46 @@ class App extends Component {
       let optionList = []
       for (var i =0; i < tempOptions.length; i++) {
         if (tempOptions[i] !== '')
-          optionList.push(<p key={"optionKey"+y.toString()+i.toString()}>{tempOptions[i]}:{tempResults[i]}</p>);
+          optionList.push(<p key={"optionKey"+y.toString()+i.toString()}>{tempOptions[i]+': '+tempResults[i]}</p>);
       }
 
       const id = 'multi'+y.toString();
-
-      let pollhtml = <div className="column" style={{textAlign: 'center'}}><h3>{name}</h3><p>{desc}</p>{optionList}
-      <button onClick={event=> this.switchDisplay(id)} className="pollhashbutton">Show Poll ID</button><br/><br/>
-      <p id={id} style={{fontSize: '11px', display:'none'}}>{this.state.pollHashListMulti[y]}</p></div>
+      let pollhtml = 
+      <div className="column" style={{textAlign: 'center'}}>
+      <h3>{name}</h3>
+      <p>{desc}</p>
+      {optionList}
+      <button className="pollhashbutton" onClick={event=> this.switchDisplay(id)}>
+        Show Poll ID
+      </button>
+      <br/>
+      <p id ={id} style={{fontSize: '11px',display: 'none'}}>{this.state.pollHashListMulti[y]}</p>
+      </div>;
       
       htmlInnerList.splice(htmlInnerList.length-2,0,pollhtml);
 
       if(y+1 > 2 && ((y+1) % 3 === 0)) {
         htmlList.push(htmlInnerList);
         htmlList.push([<br/>]);
-        htmlList.push([<span key ={"spanstyle"+y.toString()}style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>])
+        htmlList.push([<span key ={"spanstyle"+y.toString()} style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
         htmlInnerList = [];
       } else if (y+1 === this.state.pollHashListMulti.length){
         htmlList.push(htmlInnerList);
-        htmlList.push([<br/>])
+        htmlList.push([<br/>]);
         htmlInnerList = [];
       }
     }
 
     if(htmlList.length > 1)
-      await this.setState({multiDataHTML: htmlList});
+      this.setState({multiHTML: htmlList});
+  }
+
+  displayDashboard = async (event) =>{
+    await this.setState({createdisplay: 'none', mydisplay: 'initial', searchdisplay: 'none'});
+    await this.setState({dashboardSpinner: 'initial'});
+    await this.getMulti();
+    await this.getYesNo();
+    await this.setState({dashboardSpinner: 'none'});
   }
 
   // Fetch User Only once, when the user opens the app
@@ -588,7 +610,6 @@ class App extends Component {
 
         <div className = "header">
           <h1><a href="https://ethpolls.com" className ="title">EthPolls</a></h1>
-          <h3><a href="https://ethpolls.com" className="publicPollLink">Public Polls</a></h3>
           <br/>
           <br/>
           <br/>
@@ -601,7 +622,7 @@ class App extends Component {
           <span className = "switches">
             <button className="astext" onClick={event=> window.location.reload()}>Search for a Poll</button> <span className = "lines"> | </span> 
             <button className="astext" onClick= {event=> this.setState({createdisplay: 'initial', mydisplay: 'none', searchdisplay: 'none'})}>Create a Poll</button> <span className = "lines"> | </span> 
-            <button className="astext" onClick= {event=> this.setState({createdisplay: 'none', mydisplay: 'initial', searchdisplay: 'none'})}>View My Polls</button>
+            <button className="astext" onClick= {event=> this.displayDashboard()}>View My Polls</button>
           </span>
         </div>
 
@@ -850,8 +871,12 @@ class App extends Component {
         </div>
 
         {/***************** Poll Dashboard *****************/}
+        <div style={{display: this.state.dashboardSpinner}}>
+          <h4 style={{fontWeight: 300, textAlign: 'center'}}>Loading...</h4>
+          <div id="rect1" className="wave"></div>
+          <br/>
+        </div>
         <div style={{display: this.state.mydisplay}}>
-        <button onClick={event => this.getDashboard()}>Test Button</button>
         <div>
         {/* Three Column Layout for poll visual */}
         <div id="dashwrapper">
@@ -868,7 +893,7 @@ class App extends Component {
 
         <div id="dashwrapper">
         <div className="row">
-          {this.state.multiDataHTML}
+          {this.state.multiHTML}
         </div>
         </div>
 

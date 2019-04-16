@@ -1,13 +1,13 @@
 {
   "main.css": "/EthPolls/static/css/main.8b7f5749.chunk.css",
-  "main.js": "/EthPolls/static/js/main.b1559413.chunk.js",
-  "main.js.map": "/EthPolls/static/js/main.b1559413.chunk.js.map",
+  "main.js": "/EthPolls/static/js/main.fc9821e3.chunk.js",
+  "main.js.map": "/EthPolls/static/js/main.fc9821e3.chunk.js.map",
   "runtime~main.js": "/EthPolls/static/js/runtime~main.cc29c98d.js",
   "runtime~main.js.map": "/EthPolls/static/js/runtime~main.cc29c98d.js.map",
   "static/js/2.9b073ca7.chunk.js": "/EthPolls/static/js/2.9b073ca7.chunk.js",
   "static/js/2.9b073ca7.chunk.js.map": "/EthPolls/static/js/2.9b073ca7.chunk.js.map",
   "index.html": "/EthPolls/index.html",
-  "precache-manifest.80b07feb016cf3f76909bc6f49f3ff14.js": "/EthPolls/precache-manifest.80b07feb016cf3f76909bc6f49f3ff14.js",
+  "precache-manifest.4f20cf176d4dd5d42b3a3ebde3f64625.js": "/EthPolls/precache-manifest.4f20cf176d4dd5d42b3a3ebde3f64625.js",
   "service-worker.js": "/EthPolls/service-worker.js",
   "static/css/main.8b7f5749.chunk.css.map": "/EthPolls/static/css/main.8b7f5749.chunk.css.map"
 }

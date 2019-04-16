@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/EthPolls/precache-manifest.80b07feb016cf3f76909bc6f49f3ff14.js"
+  "/EthPolls/precache-manifest.4f20cf176d4dd5d42b3a3ebde3f64625.js"
 );
 
 workbox.clientsClaim();

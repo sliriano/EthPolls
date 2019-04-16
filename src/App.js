@@ -116,8 +116,10 @@ class App extends Component {
         });
 
         //Set Poll Properties
-        this.setState({noVotes: status['no']});
-        this.setState({yesVotes: status['yes']});
+        let novotes = parseInt(status['no']);
+        let yesvotes = parseInt(status['yes']);
+        this.setState({noVotes: [novotes]});
+        this.setState({yesVotes: yesvotes});
         this.setState({ispublic: status['isPublic']});
         this.setState({allowed: status['allowed']});
         this.setState({pollDescription: await yesNo.methods.getDesc(this.state.pollhash).call()});
@@ -158,9 +160,13 @@ class App extends Component {
         });
 
         // Set Poll Property Values
-        this.setState({results: status['results']});
-        this.setState({options: status['options']});
-        this.setState({allowed: status['allowed']});
+        let resultss = status['results'];
+        let optionss = status['options'];
+        let allowedd = status['allowed'];
+
+        this.setState({results: resultss});
+        this.setState({options: optionss});
+        this.setState({allowed: allowedd});
         this.setState({ispublic: status['isPublic']});
         this.setState({pollDescription: await multiData.methods.getDesc(this.state.pollhash).call()});
         this.setState({pollName: await multiData.methods.getName(this.state.pollhash).call()});
@@ -193,12 +199,6 @@ class App extends Component {
         this.setState({modColorList: this.state.colorList.slice(0,this.state.colorList.length-1)});
         this.setState({multiChart: <MultiChart labels={this.state.options} results={this.state.results} bcgColors={this.state.modColorList} redraw/>})
 
-        // Create Options & Votes List, to be rendered
-        const newList = [];
-        for (var x= 0; x < this.state.options.length; x++) {
-          newList.push(<h4>{this.state.options[x]}: {this.state.results[x]}</h4>);
-        }
-        this.setState({multiDataHTML: newList});
 
         // Manually set display values for option list *MUST IMPROVE
         if(this.state.options.length === 5) {
@@ -470,7 +470,12 @@ class App extends Component {
     // fetching poll Hashes for yesNo
     while(counter < 256) {
       try {
-        hashlist.push(await yesNo.methods.activePolls(this.state.user, counter).call());
+        const hash = await yesNo.methods.activePolls(this.state.user, counter).call();
+        console.log(hash);
+        if (hash !== null)
+          hashlist.push(hash);
+        else
+          break;
         counter++;
       }
       catch(e) {
@@ -478,37 +483,39 @@ class App extends Component {
       }
     }
     await this.setState({pollHashListYesNo: hashlist});
-  
+    console.log(this.state.pollHashListYesNo);
     // get YesNo HTML
     let htmlInnerList = []
-    let htmlList = [<h2 key="yes/nopoll text">Yes/No Polls</h2>]
+    let htmlList = [<h2>Yes/No Polls</h2>]
     for (var x = 0; x < this.state.pollHashListYesNo.length;x++){
 
       const status = await yesNo.methods.pollStatus(this.state.pollHashListYesNo[x]).call({
         from: accounts[0]
       });
 
-      const no = status['no'];
-      const yes = status['yes'];
+      const no = parseInt(status['no']);
+      const yes = parseInt(status['yes']);
       const name = await yesNo.methods.getName(this.state.pollHashListYesNo[x]).call();
       const desc = await yesNo.methods.getDesc(this.state.pollHashListYesNo[x]).call();
       const yesNoId = "yesNo"+x.toString();
 
       let pollhtml = 
-      <div className="column" style={{textAlign:'center'}}><h3>{name}</h3>
+      <div className="column" style={{textAlign:'center'}}>
+      <h3>{name}</h3>
       <p>{desc}</p><p>Yes Votes: {yes}</p><p>No Votes: {no}</p>
       <button className="pollhashbutton" onClick={event=> this.switchDisplay(yesNoId)}>
         Show Poll ID
       </button>
       <br/>
-      <p id ={yesNoId} style={{fontSize: '11px',display: 'none'}}>{this.state.pollHashListYesNo[x]}</p></div>;
+      <p id ={yesNoId} style={{fontSize: '11px',display: 'none'}}>{this.state.pollHashListYesNo[x]}</p>
+      </div>
       
       htmlInnerList.splice(htmlInnerList.length-2,0,pollhtml);
 
       if(x+1 > 2 && ((x+1) % 3 === 0)) {
         htmlList.push(htmlInnerList);
         htmlList.push([<br/>]);
-        htmlList.push([<span key={"yesNoSPanStyle"+x.toString()} style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
+        htmlList.push([<span style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
         htmlInnerList = [];
       } else if (x+1 === this.state.pollHashListYesNo.length){
         htmlList.push(htmlInnerList);
@@ -517,9 +524,7 @@ class App extends Component {
       }
     }
 
-    if(htmlList.length > 1)
-      this.setState({yesNoHTML: htmlList});
-
+    this.setState({yesNoHTML: htmlList});
 
   }
 
@@ -529,9 +534,14 @@ class App extends Component {
     const accounts = await web3.eth.getAccounts();
 
     // fetching poll hashes for multiData
-    while(counter < 256) {
+    while(counter<256) {
       try{
-        hashlist.push(await multiData.methods.activePolls(this.state.user,counter).call());
+        let hash = await multiData.methods.activePolls(this.state.user,counter).call();
+        console.log(hash);
+        if (hash !== null)
+          hashlist.push(hash);
+        else
+          break
         counter++;
       }
       catch(e){
@@ -539,10 +549,10 @@ class App extends Component {
       }
     }
     await this.setState({pollHashListMulti: hashlist});
-
+    console.log(this.state.pollHashListMulti);
     // get MultiData HTML
     let htmlInnerList = [];
-    let htmlList = [<h2 key="multidata key">Multi-Data Polls</h2>];
+    let htmlList = [<h2>Multi-Data Polls</h2>];
     for (var y = 0; y < this.state.pollHashListMulti.length;y++){
 
       const status = await multiData.methods.pollStatus(this.state.pollHashListMulti[y]).call({
@@ -557,7 +567,7 @@ class App extends Component {
       let optionList = []
       for (var i =0; i < tempOptions.length; i++) {
         if (tempOptions[i] !== '')
-          optionList.push(<p key={"optionKey"+y.toString()+i.toString()}>{tempOptions[i]+': '+tempResults[i]}</p>);
+          optionList.push(<p >{tempOptions[i]+': '+tempResults[i]}</p>);
       }
 
       const id = 'multi'+y.toString();
@@ -578,7 +588,7 @@ class App extends Component {
       if(y+1 > 2 && ((y+1) % 3 === 0)) {
         htmlList.push(htmlInnerList);
         htmlList.push([<br/>]);
-        htmlList.push([<span key ={"spanstyle"+y.toString()} style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
+        htmlList.push([<span style={{marginLeft: '10%', marginRight: '10%'}}><hr/></span>]);
         htmlInnerList = [];
       } else if (y+1 === this.state.pollHashListMulti.length){
         htmlList.push(htmlInnerList);
@@ -587,8 +597,8 @@ class App extends Component {
       }
     }
 
-    if(htmlList.length > 1)
-      this.setState({multiHTML: htmlList});
+
+    this.setState({multiHTML: htmlList});
   }
 
   displayDashboard = async (event) =>{
@@ -896,7 +906,7 @@ class App extends Component {
           {this.state.multiHTML}
         </div>
         </div>
-
+        <br />
         </div>
         </div>
 

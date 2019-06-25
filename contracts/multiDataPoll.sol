@@ -14,7 +14,6 @@ contract mulitDataPoll {
     uint[] voteResults;
     mapping(address => bool) hasVoted;
     mapping(address => bool) isAllowed;
-    uint totalVotes;
     uint start;
     uint expiration;
   }
@@ -78,9 +77,9 @@ contract mulitDataPoll {
   }
 
   function pollStatus(bytes32 pollHash) 
-  public view returns (bool isOpen, bool isPublic,string[] memory options, uint[] memory results, address[] memory allowed, uint total) {
+  public view returns (bool isOpen, bool isPublic,string[] memory options, uint[] memory results, address[] memory allowed) {
     Poll memory poll = polls[pollHash];
-    return (!poll.isClosed, poll.isPublic, poll.options, poll.voteResults,poll.allowed, poll.totalVotes);
+    return (!poll.isClosed, poll.isPublic, poll.options, poll.voteResults,poll.allowed);
   }
   
   
@@ -148,7 +147,6 @@ contract mulitDataPoll {
   public pollExists(pollHash) hasNotVoted(pollHash) canVote(pollHash,msg.sender) notExpired(pollHash){
     require(voteChoice < polls[pollHash].options.length+1 && voteChoice > 0, "This option does not exist");
     polls[pollHash].voteResults[voteChoice-1]++;
-    polls[pollHash].totalVotes++;
     polls[pollHash].hasVoted[msg.sender] = true;
   }
   

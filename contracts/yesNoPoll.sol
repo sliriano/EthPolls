@@ -13,12 +13,10 @@ contract yesNoPoll {
     mapping(address => bool) isAllowed;
     uint yesVotes;
     uint noVotes;
-    uint totalVotes;
     uint start;
     uint expiration;
     address[] allowed;
   }
-
 
 /*-------------------<GLOBALs>-------------------*/
   uint constant maxPolls = 256;
@@ -83,9 +81,9 @@ contract yesNoPoll {
   }
 
   function pollStatus(bytes32 pollHash) 
-  public view returns (bool isOpen, bool isPublic, uint yes, uint no, uint total, address[] memory allowed) {
+  public view returns (bool isOpen, bool isPublic, uint yes, uint no, address[] memory allowed) {
     Poll memory poll = polls[pollHash];
-    return (!poll.isClosed, poll.isPublic, poll.yesVotes, poll.noVotes, poll.totalVotes, poll.allowed);
+    return (!poll.isClosed, poll.isPublic, poll.yesVotes, poll.noVotes, poll.allowed);
   }
   
   function shiftArray(address creator, bytes32 pollHash) private {
@@ -151,7 +149,6 @@ contract yesNoPoll {
   public pollExists(pollHash) hasNotVoted(pollHash) canVote(pollHash,msg.sender) notExpired(pollHash) {
     if (voteChoice) polls[pollHash].yesVotes++;
     if (!voteChoice) polls[pollHash].noVotes++;
-    polls[pollHash].totalVotes++;
     polls[pollHash].hasVoted[msg.sender] = true;
   }
   

@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
 import './App.css';
 import web3 from './web3';
-import './App.css';
-import Chart from './components/Chart';
-import MultiChart from './components/Multichart';
 import yesNo from './yesNo';
 import multiData from './multiData';
+import Chart from './components/Chart';
+import MultiChart from './components/Multichart';
 
 class App extends Component {
 
   state = {
+    // General Poll State Variables
     user: '',
     userMessage:'',
     pollhash: '',
@@ -17,8 +17,6 @@ class App extends Component {
     pollName: '',
     pollDescription: '',
     ispublic: '',
-    colorList: ['#C7CEEA','#B5EAD7','#E2F0CB','#FFDAC1','#FFB7B2'],
-    modColorList: [],
     allowed: [],
     isallowed: false,
     spinnerdisplay: 'none',
@@ -38,6 +36,8 @@ class App extends Component {
     voteOptionsHTML: [],
     voteChoice: 0,
     votebtndisplay: 'none',
+    colorList: ['#C7CEEA','#B5EAD7','#E2F0CB','#FFDAC1','#FFB7B2'],
+    modColorList: [],
     //Display variables for each option
     o1: 'none',
     o2: 'none',
@@ -48,13 +48,14 @@ class App extends Component {
     searchdisplay: 'initial',
     createdisplay: 'none',
     mydisplay: 'none',
-    // other
-    step: '1',
+    // Voting Options 
     option1: '',
     option2: '',
     option3: '',
     option4: '',
     option5: '',
+    // Step variables for creating poll
+    step: '1',
     hasPassed: false,
     isready: 0,
     buttonText: 'Next Steps',
@@ -88,7 +89,6 @@ class App extends Component {
       this.setState({userMessage: 'Current User:'});
     }
     catch (e) {
-      console.log(e);
       this.setState({user: ''});
       this.setState({userMessage: ''});
       alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
@@ -453,6 +453,7 @@ class App extends Component {
     }
   }
 
+  // Swith Display Helper Function
   switchDisplay(ID) {
     if(document.getElementById(ID).style.display === "none") {
       document.getElementById(ID).style.display = "inline";
@@ -462,6 +463,7 @@ class App extends Component {
       document.getElementById(ID).style.display = "none";
   }
 
+  // Retrieves all Yes/No Polls for a given user
   getYesNo = async (event) => {
     let hashlist = [];
     let counter = 0;
@@ -528,6 +530,7 @@ class App extends Component {
 
   }
 
+  // Retrieves all Multi-Data Polls for a given user
   getMulti = async (event) => {
     let counter = 0;
     let hashlist = [];
@@ -601,6 +604,7 @@ class App extends Component {
     this.setState({multiHTML: htmlList});
   }
 
+  // Display Voting Dashboard and spinners until Dashboard loads
   displayDashboard = async (event) =>{
     await this.setState({createdisplay: 'none', mydisplay: 'initial', searchdisplay: 'none'});
     await this.setState({dashboardSpinner: 'initial'});

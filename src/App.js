@@ -95,6 +95,7 @@ class App extends Component {
       this.setState({mustHave: 'You Must Have Metamask or an Ethereum browser in order to use this DApp. Recommended:' + <a href="https://metamask.io">"metamask.io"</a>})
     }
   }
+  
 // Search Poll, return status if it exists
   searchPoll = async (event) => {
     try {
@@ -453,16 +454,6 @@ class App extends Component {
     }
   }
 
-  // Swith Display Helper Function
-  switchDisplay(ID) {
-    if(document.getElementById(ID).style.display === "none") {
-      document.getElementById(ID).style.display = "inline";
-      console.log('success');
-    }
-    else
-      document.getElementById(ID).style.display = "none";
-  }
-
   // Retrieves all Yes/No Polls for a given user
   getYesNo = async (event) => {
     let hashlist = [];
@@ -600,9 +591,18 @@ class App extends Component {
       }
     }
 
-
     this.setState({multiHTML: htmlList});
   }
+
+  // pass in an elements id to toggle its display value
+  switchDisplay(ID) {
+    if(document.getElementById(ID).style.display === "none") {
+      document.getElementById(ID).style.display = "inline";
+      console.log('success');
+    }
+    else
+      document.getElementById(ID).style.display = "none";
+    }
 
   // Display Voting Dashboard and spinners until Dashboard loads
   displayDashboard = async (event) =>{

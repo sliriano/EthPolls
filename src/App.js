@@ -85,7 +85,6 @@ class App extends Component {
       if (web3.currentProvider['host'] === 'metamask') {
         window.web3.currentProvider.enable();
       }
-      
       this.setState({userMessage: 'Current User:'});
     }
     catch (e) {

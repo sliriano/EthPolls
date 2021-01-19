@@ -1,17 +1,20 @@
 import React, { Component } from 'react';
 import './App.css';
-import web3 from './web3';
+import Web3 from "web3";
 import yesNo from './yesNo';
 import multiData from './multiData';
 import Chart from './components/Chart';
 import MultiChart from './components/Multichart';
+import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 
 class App extends Component {
 
   state = {
+    web3: {},
     // General Poll State Variables
     user: '',
-    userMessage:'',
+    userMessage:'Not Connected',
     pollhash: '',
     pollType: '',
     pollName: '',
@@ -77,20 +80,45 @@ class App extends Component {
     dashboardSpinner: 'none'
   };
   
+
+  async connectEthereum() {
+    
+    const providerOptions = {
+      walletconnect: {
+        package: WalletConnectProvider, // required
+        options: {
+          infuraId: "INFURA_ID" // required
+        }
+      }
+    };
+    
+    const web3Modal = new Web3Modal({
+      providerOptions // required
+    });
+    
+    const provider = await web3Modal.connect();
+    const web3 = new Web3(provider);
+    this.web3 = web3;
+    if (web3) {
+      const accounts = await web3.eth.getAccounts();
+      this.setState({user: accounts[0]});
+      this.setState({userMessage: 'Current User:'});
+      return web3;
+    }
+    else {
+      alert("Please install an Ethereum-compatible browser or extension like MetaMask to use this dApp");
+      return false;
+    }
+  }
+
   // Determine and Initialize the User
   getUser = async (event) => {
     try {
-      const accounts = await web3.eth.getAccounts();
-      this.setState({user: accounts[0]});
-      if (web3.currentProvider['host'] === 'metamask') {
-        window.web3.currentProvider.enable();
-      }
-      this.setState({userMessage: 'Current User:'});
+
     }
     catch (e) {
       this.setState({user: ''});
       this.setState({userMessage: ''});
-      alert("Please make sure either metamask is installed and you are logged into it or you are using an Ethereum Browser");
       this.setState({mustHave: 'You Must Have Metamask or an Ethereum browser in order to use this DApp. Recommended:' + <a href="https://metamask.io">"metamask.io"</a>})
     }
   }
@@ -98,7 +126,7 @@ class App extends Component {
 // Search Poll, return status if it exists
   searchPoll = async (event) => {
     try {
-      const accounts = await web3.eth.getAccounts();
+      const accounts = await this.web3.eth.getAccounts();
 
       if (this.state.pollhash === '') {
         alert("This Poll Hash does not exist or is not valid");
@@ -234,7 +262,7 @@ class App extends Component {
   voteYes = async (event) => {
     var bool = false;
     try {
-      const accounts = await web3.eth.getAccounts();
+      const accounts = await this.web3.eth.getAccounts();
       bool = true;
       this.setState({spinnerdisplay: "initial"});
 
@@ -259,7 +287,7 @@ class App extends Component {
   voteNo = async (event) => {
     var bool = false
     try {
-      const accounts = await web3.eth.getAccounts();
+      const accounts = await this.web3.eth.getAccounts();
       bool = true;
       this.setState({spinnerdisplay: "initial"});
       await yesNo.methods.vote(this.state.pollhash,false).send({
@@ -283,7 +311,7 @@ class App extends Component {
   multiVote = async (event) => {
     var bool = false;
     try {
-      const accounts = await web3.eth.getAccounts();
+      const accounts = await this.web3.eth.getAccounts();
 
       bool = true;
       this.setState({spinnerdisplay: "initial"});
@@ -343,7 +371,7 @@ class App extends Component {
       else if (this.state.ispublic === true && this.state.pollType === 'multiData') {
         if (this.state.isready > 0) {
           this.setState({createspinner: 'initial'});
-          const accounts = await web3.eth.getAccounts();
+          const accounts = await this.web3.eth.getAccounts();
           const newPollHash = await multiData.methods.calcPollHash(this.state.pollName,accounts[0]).call();
 
           await this.setState({pollhash: newPollHash});
@@ -366,7 +394,7 @@ class App extends Component {
       else if (this.state.ispublic === false && this.state.pollType === 'multiData') {
         if (this.state.isready > 0) {
           this.setState({createspinner: 'initial'});
-          const accounts = await web3.eth.getAccounts();
+          const accounts = await this.web3.eth.getAccounts();
 
           let newArr = []
 
@@ -398,7 +426,7 @@ class App extends Component {
       else if (this.state.ispublic === true && this.state.pollType === "yesNo") {
         if (this.state.isready > 0) {
           this.setState({createspinner: 'initial'});
-          const accounts = await web3.eth.getAccounts();
+          const accounts = await this.web3.eth.getAccounts();
 
           const newPollHash = await yesNo.methods.calcPollHash(this.state.pollName,accounts[0]).call();
 
@@ -420,7 +448,7 @@ class App extends Component {
       else if (this.state.ispublic === false && this.state.pollType === "yesNo") {
         if (this.state.isready > 0) {
           this.setState({createspinner: 'initial'});
-          const accounts = await web3.eth.getAccounts();
+          const accounts = await this.web3.eth.getAccounts();
           let newArr = []
 
           for (var y = 0; y < this.state.allowed.length; y++) {
@@ -457,7 +485,7 @@ class App extends Component {
   getYesNo = async (event) => {
     let hashlist = [];
     let counter = 0;
-    const accounts = await web3.eth.getAccounts();
+    const accounts = await this.web3.eth.getAccounts();
 
     // fetching poll Hashes for yesNo
     while(counter < 256) {
@@ -524,7 +552,7 @@ class App extends Component {
   getMulti = async (event) => {
     let counter = 0;
     let hashlist = [];
-    const accounts = await web3.eth.getAccounts();
+    const accounts = await this.web3.eth.getAccounts();
 
     // fetching poll hashes for multiData
     while(counter<256) {
@@ -614,6 +642,7 @@ class App extends Component {
 
   // Fetch User Only once, when the user opens the app
   componentDidMount() {
+    this.connectEthereum();
     this.getUser();
   }
 

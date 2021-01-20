@@ -5,7 +5,8 @@ The EthPolls Beta is live.
 Featured on State of the DApps
 https://www.stateofthedapps.com/dapps/ethpolls
 
-### Beta
-The EthPolls Beta can be found at https://ethpolls.com
+### DAPP V1
+Version 1 of Ethpolls can be found at https://ethpollsdapp.surge.sh
 
-# UPDATE: The current DAPP UI is not compatible with Web3 providers and will be updated very soon. Apologies for the inconvenience. Smart contracts are still operable on their own, through Remix or Etherscan.
+### Beta
+The EthPolls Beta can be found at https://ethpolls.surge.sh
